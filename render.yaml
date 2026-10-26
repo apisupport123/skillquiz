@@ -1,0 +1,30 @@
+# Render Blueprint: Render Dashboard -> New -> Blueprint -> pick this repo.
+# Secrets marked sync:false are asked for once in the dashboard (never commit them).
+services:
+  - type: web
+    name: skillquiz-api
+    runtime: docker
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: singapore
+    healthCheckPath: /api/health
+    envVars:
+      - key: DB_URL
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: ADMIN_KEY
+        sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash
+      - key: QUIZ_QUESTIONS_PER_TEST
+        value: "10"
+      - key: QUIZ_TIME_LIMIT_MINUTES
+        value: "15"

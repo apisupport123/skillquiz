@@ -1,0 +1,23 @@
+# Compiles the backend on every push so you see a green tick (or the error) on GitHub.
+name: Backend build
+
+on:
+  push:
+    paths: ["backend/**", ".github/workflows/build.yml"]
+  pull_request:
+    paths: ["backend/**"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+      - name: Build
+        working-directory: backend
+        run: mvn -B -q package -DskipTests

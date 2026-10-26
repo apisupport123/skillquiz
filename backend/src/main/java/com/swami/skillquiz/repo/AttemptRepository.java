@@ -1,0 +1,48 @@
+package com.swami.skillquiz.repo;
+
+import com.swami.skillquiz.model.Attempt;
+import com.swami.skillquiz.model.Level;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.List;
+
+public interface AttemptRepository extends JpaRepository<Attempt, String> {
+
+    List<Attempt> findByEmpIdIgnoreCaseAndSubmittedTrueOrderBySubmittedAtDesc(String empId);
+
+    List<Attempt> findBySubmittedTrueOrderBySubmittedAtDesc(Pageable page);
+
+    // Leaderboard: best % first, then fastest. Three variants instead of "(:x is null or ...)"
+    // because Postgres cannot infer the type of a null parameter.
+    List<Attempt> findBySubmittedTrueOrderByPercentageDescDurationSecondsAscSubmittedAtAsc(Pageable page);
+
+    List<Attempt> findByTopicKeyAndSubmittedTrueOrderByPercentageDescDurationSecondsAscSubmittedAtAsc(
+            String topicKey, Pageable page);
+
+    List<Attempt> findByTopicKeyAndLevelAndSubmittedTrueOrderByPercentageDescDurationSecondsAscSubmittedAtAsc(
+            String topicKey, Level level, Pageable page);
+
+    /** question ids this employee has already seen for a topic+level (to avoid repeats) */
+    @Query("""
+           select i.question.id from AttemptItem i
+           where lower(i.attempt.empId) = lower(:empId)
+             and i.attempt.topicKey = :topicKey
+             and i.attempt.level = :level
+           """)
+    List<Long> seenQuestionIds(@Param("empId") String empId,
+                               @Param("topicKey") String topicKey,
+                               @Param("level") Level level);
+
+    /** popular topics for the chips on the home page: [topicLabel, count] */
+    @Query("""
+           select a.topicKey, max(a.topicLabel), count(a)
+           from Attempt a where a.submitted = true
+           group by a.topicKey order by count(a) desc
+           """)
+    List<Object[]> popularTopics(Pageable page);
+
+    long countBySubmittedTrue();
+}
