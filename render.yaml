@@ -4,8 +4,10 @@ services:
   - type: web
     name: skillquiz-api
     runtime: docker
+    # dockerfilePath / dockerContext are relative to the REPO ROOT (not rootDir)
     rootDir: backend
-    dockerfilePath: ./Dockerfile
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
     plan: free
     region: singapore
     healthCheckPath: /api/health
