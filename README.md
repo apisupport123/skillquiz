@@ -106,7 +106,7 @@ Repo → **Settings → Secrets and variables → Actions → Variables** → Ne
 | `QUIZ_TIME_LIMIT_MINUTES` | 15 | timer |
 | `QUIZ_TARGET_POOL_SIZE` | 45 | background mein pool kitna bade |
 | `QUIZ_MAX_AI_CALLS_PER_MINUTE` | 4 | free AI limit ke andar rehne ke liye |
-| `GEMINI_MODEL` | gemini-2.5-flash | AI model |
+| `GEMINI_MODEL` | gemini-3.6-flash | AI model |
 
 ## Laptop pe chalana (bina Supabase / AI ke)
 ```bash

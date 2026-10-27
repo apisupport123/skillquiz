@@ -37,7 +37,7 @@ public class GeminiQuestionGenerator implements QuestionGenerator {
 
     public GeminiQuestionGenerator(ObjectMapper mapper,
                                    @Value("${gemini.api-key:}") String apiKey,
-                                   @Value("${gemini.model:gemini-2.5-flash}") String model) {
+                                   @Value("${gemini.model:gemini-3.6-flash}") String model) {
         this.mapper = mapper;
         this.apiKey = apiKey;
         this.model = model;
