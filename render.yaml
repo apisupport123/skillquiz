@@ -4,8 +4,7 @@ services:
   - type: web
     name: skillquiz-api
     runtime: docker
-    # dockerfilePath / dockerContext are relative to the REPO ROOT (not rootDir)
-    rootDir: backend
+    # No rootDir: both paths below are from the repo root.
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
     plan: free
