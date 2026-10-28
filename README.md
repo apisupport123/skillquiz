@@ -92,6 +92,12 @@ Repo → **Settings → Secrets and variables → Actions → Variables** → Ne
 
 ---
 
+## App jaisa install (link + app dono)
+Same link browser mein website ki tarah chalta hai, aur install bhi hota hai (PWA) — free, koi app store nahi:
+- **Android (Chrome):** home page pe **Install app** button → Install. Ya Chrome menu ⋮ → *Install app / Add to Home screen*.
+- **iPhone (Safari):** **Install app** dabao → steps dikhenge: Share → *Add to Home Screen*.
+- Home screen pe SkillQuiz icon aata hai, full-screen khulta hai. GitHub pe push karte hi app bhi update ho jaata hai.
+
 ## Exam lock (anti-cheat)
 Test ke dauraan ye hone pe test turant submit ho jaata hai, aur Admin/CSV mein wajah dikhti hai:
 - dusre app/tab pe jaana, call/notification kholna, screen lock (`Left screen`)

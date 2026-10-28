@@ -4,6 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#121A33">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SkillQuiz">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>SkillQuiz</title>
 <meta name="description" content="Type any technology and get your own AI-written test paper.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%23D23F73' stroke-width='3'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%23121A33'/%3E%3C/svg%3E">
@@ -409,6 +415,14 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
 .del-confirm { margin-top: 12px; padding: 12px 14px; border-radius: 12px; background: var(--accent-soft); }
 .del-confirm p { margin: 0 0 10px; font-weight: 600; }
 
+.install-card { margin-top: 18px; padding: 14px 16px; display: flex; align-items: center; gap: 14px; }
+.install-card img { border-radius: 14px; flex: none; }
+.install-txt { flex: 1; min-width: 0; }
+.install-txt b { display: block; font-family: var(--display); font-size: 1.02rem; }
+.install-txt span { display: block; font-size: .84rem; color: var(--ink-2); line-height: 1.35; }
+.ios-steps { padding-left: 20px; margin: 14px 0 18px; display: grid; gap: 10px; }
+@media (max-width: 420px) { .install-card { flex-wrap: wrap; } .install-card .btn { width: 100%; } }
+
 /* phones: dialogs become bottom sheets */
 @media (max-width: 640px) {
   dialog { margin: auto 0 0; width: 100%; border-radius: var(--r-lg) var(--r-lg) 0 0; max-height: 94vh; }
@@ -490,6 +504,12 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
         <div id="demoRows"></div>
         <p class="foot">The person next to you gets different questions, and the options are shuffled too.</p>
       </div>
+    </div>
+
+    <div class="install-card card" id="installCard" hidden>
+      <img src="icons/icon-192.png" alt="" width="52" height="52">
+      <div class="install-txt"><b>Get the SkillQuiz app</b><span>Adds an icon to your home screen. Opens full screen, no app store needed.</span></div>
+      <button class="btn small" type="button" id="installBtn">Install app</button>
     </div>
 
     <div class="rules-strip card">
@@ -764,6 +784,22 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
     <h2 id="warnTitle">You left the exam screen</h2>
     <p id="warnMsg"></p>
     <div class="actions"><button class="btn" type="button" id="warnOk">Continue the test</button></div>
+  </div>
+</dialog>
+
+<!-- iPhone: add to home screen -->
+<dialog id="iosDlg" aria-labelledby="iosTitle">
+  <div class="sheet-in">
+    <div class="sheet-grip" aria-hidden="true"></div>
+    <h2 id="iosTitle">Install on iPhone</h2>
+    <ol class="ios-steps">
+      <li>Open this page in <b>Safari</b>.</li>
+      <li>Tap the <b>Share</b> button
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-label="Share icon" style="vertical-align:-3px"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>
+        at the bottom of the screen.</li>
+      <li>Scroll and tap <b>Add to Home Screen</b>, then <b>Add</b>.</li>
+    </ol>
+    <div class="actions"><button class="btn" type="button" id="iosOk">Got it</button></div>
   </div>
 </dialog>
 
@@ -1437,6 +1473,30 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
     } catch (err) { toast(err.message); }
     btn.disabled = false;
   });
+
+  // ---------- install as app (PWA) ----------
+  const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  let installPrompt = null;
+  if ("serviceWorker" in navigator && window.isSecureContext) {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  }
+  if (!standalone) {
+    window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); installPrompt = e; $("#installCard").hidden = false; });
+    if (isIOS) $("#installCard").hidden = false;
+  }
+  window.addEventListener("appinstalled", () => { $("#installCard").hidden = true; toast("SkillQuiz app installed. Find it on your home screen."); });
+  $("#installBtn").addEventListener("click", async () => {
+    if (installPrompt) {
+      installPrompt.prompt();
+      const { outcome } = await installPrompt.userChoice;
+      installPrompt = null;
+      if (outcome === "accepted") $("#installCard").hidden = true;
+    } else if (isIOS) {
+      $("#iosDlg").showModal();
+    }
+  });
+  $("#iosOk").addEventListener("click", () => $("#iosDlg").close());
 
   // ---------- boot ----------
   $("#orgName").textContent = CFG.orgName || "";
