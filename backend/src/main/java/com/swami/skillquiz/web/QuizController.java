@@ -43,13 +43,14 @@ public class QuizController {
     }
 
     @PostMapping("/quiz/start")
-    public StartResponse start(@Valid @RequestBody StartRequest req) {
-        return quiz.start(req);
+    public StartResponse start(@Valid @RequestBody StartRequest req,
+                               @RequestHeader(value = "User-Agent", required = false) String userAgent) {
+        return quiz.start(req, userAgent);
     }
 
     @PostMapping("/quiz/{attemptId}/submit")
     public ResultResponse submit(@PathVariable String attemptId, @Valid @RequestBody SubmitRequest req) {
-        return quiz.submit(attemptId, req.answers(), req.reason());
+        return quiz.submit(attemptId, req);
     }
 
     /**
@@ -64,8 +65,8 @@ public class QuizController {
         } catch (Exception e) {
             throw new ApiException(400, "Request sahi format mein nahi hai.");
         }
-        quiz.submit(attemptId, req.answers() == null ? java.util.Map.of() : req.answers(),
-                req.reason() == null ? "CLOSED" : req.reason());
+        quiz.submit(attemptId, new SubmitRequest(req.answers() == null ? Map.of() : req.answers(),
+                req.reason() == null ? "CLOSED" : req.reason(), req.timings(), req.changes(), req.warnings()));
     }
 
     @GetMapping("/quiz/{attemptId}/result")
@@ -73,11 +74,14 @@ public class QuizController {
         return quiz.result(attemptId);
     }
 
+    /** days = last N days only (empty = all time); best = one row per employee (their best attempt) */
     @GetMapping("/leaderboard")
     public List<LeaderRow> leaderboard(@RequestParam(required = false) String topic,
                                        @RequestParam(required = false) Level level,
-                                       @RequestParam(defaultValue = "20") int limit) {
-        return quiz.leaderboard(topic, level, limit);
+                                       @RequestParam(required = false) Integer days,
+                                       @RequestParam(defaultValue = "true") boolean best,
+                                       @RequestParam(defaultValue = "50") int limit) {
+        return quiz.leaderboard(topic, level, days, best, limit);
     }
 
     @GetMapping("/employees/{empId}/history")

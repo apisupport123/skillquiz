@@ -8,7 +8,9 @@ import com.swami.skillquiz.repo.AttemptRepository;
 import com.swami.skillquiz.repo.QuestionRepository;
 import com.swami.skillquiz.service.ApiException;
 import com.swami.skillquiz.service.QuestionPoolService;
+import com.swami.skillquiz.service.QuizService;
 import com.swami.skillquiz.service.Topics;
+import com.swami.skillquiz.web.Dtos.AdminAttemptDetail;
 import com.swami.skillquiz.web.Dtos.AdminAttemptRow;
 import com.swami.skillquiz.web.Dtos.AdminQuestionRow;
 import org.springframework.data.domain.PageRequest;
@@ -37,13 +39,15 @@ public class AdminController {
     private final QuestionRepository questions;
     private final QuizProperties props;
     private final QuestionPoolService pool;
+    private final QuizService quiz;
 
     public AdminController(AttemptRepository attempts, QuestionRepository questions, QuizProperties props,
-                           QuestionPoolService pool) {
+                           QuestionPoolService pool, QuizService quiz) {
         this.attempts = attempts;
         this.questions = questions;
         this.props = props;
         this.pool = pool;
+        this.quiz = quiz;
     }
 
     /**
@@ -121,40 +125,69 @@ public class AdminController {
         return "ok";
     }
 
+    /** every attempt, newest first - including tests that were started but not submitted */
     @GetMapping("/attempts")
-    @Transactional(readOnly = true)
     public List<AdminAttemptRow> attempts(@RequestHeader(value = "X-Admin-Key", required = false) String key,
-                                          @RequestParam(defaultValue = "500") int limit) {
+                                          @RequestParam(defaultValue = "1000") int limit) {
         auth(key);
-        return attempts.findBySubmittedTrueOrderBySubmittedAtDesc(PageRequest.of(0, Math.min(limit, 5000)))
-                .stream().map(AdminController::row).toList();
+        return quiz.adminRows(limit);
     }
 
-    /** Excel-friendly download of all results */
+    /** everything about one attempt, incl. time spent per question */
+    @GetMapping("/attempts/{id}")
+    public AdminAttemptDetail attempt(@RequestHeader(value = "X-Admin-Key", required = false) String key,
+                                      @PathVariable String id) {
+        auth(key);
+        return quiz.adminDetail(id);
+    }
+
+    /** Excel-friendly download of every attempt with full detail */
     @GetMapping(value = "/attempts.csv")
     @Transactional(readOnly = true)
     public ResponseEntity<byte[]> csv(@RequestHeader(value = "X-Admin-Key", required = false) String key) {
         auth(key);
-        StringBuilder sb = new StringBuilder("﻿"); // BOM so Excel opens UTF-8 correctly
-        sb.append("Employee ID,Name,Department,Topic,Level,Score,Total,Percentage,Time (min),Submitted (IST),How it ended\n");
-        for (Attempt a : attempts.findBySubmittedTrueOrderBySubmittedAtDesc(PageRequest.of(0, 100_000))) {
-            sb.append(cell(a.getEmpId())).append(',')
-              .append(cell(a.getEmpName())).append(',')
-              .append(cell(a.getDepartment())).append(',')
-              .append(cell(a.getTopicLabel())).append(',')
-              .append(a.getLevel()).append(',')
-              .append(a.getScore()).append(',')
-              .append(a.getTotal()).append(',')
-              .append(a.getPercentage()).append(',')
-              .append(String.format("%.1f", (a.getDurationSeconds() == null ? 0 : a.getDurationSeconds()) / 60.0)).append(',')
-              .append(a.getSubmittedAt() == null ? "" : IST.format(a.getSubmittedAt())).append(',')
-              .append(endLabel(a.getEndReason()))
+        StringBuilder sb = new StringBuilder("\uFEFF"); // BOM so Excel opens UTF-8 correctly
+        sb.append("Employee ID,Name,Team,Topic,Level,Status,Score,Total,Correct,Wrong,Skipped,Percentage,Result,")
+          .append("Started (IST),Finished (IST),Time taken (min),Time limit (min),How it ended,Warnings,Device,Opened from,Attempt ID\n");
+        for (Attempt a : attempts.findAllByOrderByStartedAtDesc(PageRequest.of(0, 100_000))) {
+            AdminAttemptRow r = quiz.adminRow(a);
+            boolean done = "SUBMITTED".equals(r.status());
+            sb.append(cell(r.empId())).append(',')
+              .append(cell(r.empName())).append(',')
+              .append(cell(r.department())).append(',')
+              .append(cell(r.topic())).append(',')
+              .append(r.level()).append(',')
+              .append(statusLabel(r.status())).append(',')
+              .append(done ? String.valueOf(r.score()) : "").append(',')
+              .append(r.total()).append(',')
+              .append(done ? String.valueOf(r.score()) : "").append(',')
+              .append(done ? String.valueOf(r.wrong()) : "").append(',')
+              .append(done ? String.valueOf(r.skipped()) : "").append(',')
+              .append(done ? String.valueOf(r.percentage()) : "").append(',')
+              .append(done ? (r.passed() ? "Pass" : "Fail") : "").append(',')
+              .append(r.startedAt() == null ? "" : IST.format(r.startedAt())).append(',')
+              .append(r.submittedAt() == null ? "" : IST.format(r.submittedAt())).append(',')
+              .append(done ? String.format("%.1f", r.durationSeconds() / 60.0) : "").append(',')
+              .append(r.timeLimitSeconds() / 60).append(',')
+              .append(done ? endLabel(r.endReason()) : "").append(',')
+              .append(r.warnings()).append(',')
+              .append(cell(r.device())).append(',')
+              .append(r.installedApp() == null ? "" : (r.installedApp() ? "App" : "Browser")).append(',')
+              .append(r.attemptId())
               .append('\n');
         }
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=skillquiz-results.csv")
                 .contentType(new MediaType("text", "csv", StandardCharsets.UTF_8))
                 .body(sb.toString().getBytes(StandardCharsets.UTF_8));
+    }
+
+    private static String statusLabel(String s) {
+        return switch (s) {
+            case "SUBMITTED" -> "Submitted";
+            case "IN_PROGRESS" -> "In progress";
+            default -> "Abandoned";
+        };
     }
 
     /** See the AI questions for a topic so you can switch off wrong ones */
@@ -193,14 +226,6 @@ public class AdminController {
         if (!MessageDigest.isEqual(a, b)) {
             throw new ApiException(401, "Admin password galat hai.");
         }
-    }
-
-    private static AdminAttemptRow row(Attempt a) {
-        return new AdminAttemptRow(a.getId(), a.getEmpId(), a.getEmpName(), a.getDepartment(), a.getTopicLabel(),
-                a.getLevel(), a.getScore() == null ? 0 : a.getScore(), a.getTotal(),
-                a.getPercentage() == null ? 0 : a.getPercentage(),
-                a.getDurationSeconds() == null ? 0 : a.getDurationSeconds(), a.getStartedAt(), a.getSubmittedAt(),
-                a.getEndReason() == null ? "MANUAL" : a.getEndReason());
     }
 
     private static String endLabel(String r) {

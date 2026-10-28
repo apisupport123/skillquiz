@@ -36,6 +36,12 @@ public class AttemptItem {
 
     private Boolean correct;
 
+    /** seconds the person spent on this question (sent by the browser) */
+    private Integer timeSpentSeconds;
+
+    /** how many times they changed their answer */
+    private Integer answerChanges;
+
     public List<Integer> order() {
         return Arrays.stream(optionOrder.split(",")).map(Integer::parseInt).toList();
     }
@@ -63,5 +69,9 @@ public class AttemptItem {
     public Integer getSelectedDisplayIndex() { return selectedDisplayIndex; }
     public void setSelectedDisplayIndex(Integer selectedDisplayIndex) { this.selectedDisplayIndex = selectedDisplayIndex; }
     public Boolean getCorrect() { return correct; }
+    public Integer getTimeSpentSeconds() { return timeSpentSeconds; }
+    public void setTimeSpentSeconds(Integer v) { this.timeSpentSeconds = v; }
+    public Integer getAnswerChanges() { return answerChanges; }
+    public void setAnswerChanges(Integer v) { this.answerChanges = v; }
     public void setCorrect(Boolean correct) { this.correct = correct; }
 }

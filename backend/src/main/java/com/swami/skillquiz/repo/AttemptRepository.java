@@ -4,6 +4,7 @@ import com.swami.skillquiz.model.Attempt;
 import com.swami.skillquiz.model.Level;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -11,7 +12,10 @@ import org.springframework.data.repository.query.Param;
 import java.time.Instant;
 import java.util.List;
 
-public interface AttemptRepository extends JpaRepository<Attempt, String> {
+public interface AttemptRepository extends JpaRepository<Attempt, String>, JpaSpecificationExecutor<Attempt> {
+
+    /** every attempt, including ones that were started but never submitted (admin view) */
+    List<Attempt> findAllByOrderByStartedAtDesc(Pageable page);
 
     List<Attempt> findByEmpIdIgnoreCaseAndSubmittedTrueOrderBySubmittedAtDesc(String empId);
 

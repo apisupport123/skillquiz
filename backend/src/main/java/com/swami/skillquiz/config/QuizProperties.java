@@ -10,6 +10,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public record QuizProperties(
         int questionsPerTest,      // questions in one paper
         int timeLimitMinutes,      // countdown shown on UI; server records duration
+        int passPercent,           // score at or above this % = Pass
         int minPoolSize,           // pool must have at least this many before a paper is drawn
         int targetPoolSize,        // background top-up aims for this
         int maxPoolSize,           // stop generating after this

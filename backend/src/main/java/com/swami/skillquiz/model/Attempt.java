@@ -61,6 +61,22 @@ public class Attempt implements Persistable<String> {
     @Column(length = 20)
     private String endReason;
 
+    // ----- extra detail for leaderboard / admin -----
+    private Integer answeredCount;
+    private Integer wrongCount;
+    private Integer skippedCount;
+    /** time limit that applied when this test started */
+    private Integer timeLimitSeconds;
+    /** how many times the person left the exam screen and got a warning */
+    private Integer warnings;
+    /** e.g. "Android, Chrome" */
+    @Column(length = 60)
+    private String device;
+    /** true = opened from the installed app, false = in a browser */
+    private Boolean installedApp;
+    @Column(length = 400)
+    private String userAgent;
+
     @OneToMany(mappedBy = "attempt", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("position ASC")
     private List<AttemptItem> items = new ArrayList<>();
@@ -104,6 +120,22 @@ public class Attempt implements Persistable<String> {
     public void setDurationSeconds(Integer durationSeconds) { this.durationSeconds = durationSeconds; }
     public boolean isSubmitted() { return submitted; }
     public String getEndReason() { return endReason; }
+    public Integer getAnsweredCount() { return answeredCount; }
+    public void setAnsweredCount(Integer v) { this.answeredCount = v; }
+    public Integer getWrongCount() { return wrongCount; }
+    public void setWrongCount(Integer v) { this.wrongCount = v; }
+    public Integer getSkippedCount() { return skippedCount; }
+    public void setSkippedCount(Integer v) { this.skippedCount = v; }
+    public Integer getTimeLimitSeconds() { return timeLimitSeconds; }
+    public void setTimeLimitSeconds(Integer v) { this.timeLimitSeconds = v; }
+    public Integer getWarnings() { return warnings; }
+    public void setWarnings(Integer v) { this.warnings = v; }
+    public String getDevice() { return device; }
+    public void setDevice(String v) { this.device = v; }
+    public Boolean getInstalledApp() { return installedApp; }
+    public void setInstalledApp(Boolean v) { this.installedApp = v; }
+    public String getUserAgent() { return userAgent; }
+    public void setUserAgent(String v) { this.userAgent = v; }
     public void setEndReason(String endReason) { this.endReason = endReason; }
     public void setSubmitted(boolean submitted) { this.submitted = submitted; }
     public List<AttemptItem> getItems() { return items; }
