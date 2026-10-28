@@ -360,7 +360,8 @@ code { font-family: ui-monospace, Consolas, monospace; font-size: .9em; backgrou
 .exp { margin: 10px 0 0; padding-top: 10px; border-top: 1px dashed var(--line); color: var(--ink-2); font-size: .94rem; }
 
 /* ================= LISTS (leaderboard / history / admin) ================= */
-.filter-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: end; margin: 14px 0 16px; }
+.filter-bar { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; align-items: end; margin: 14px 0 16px; }
+.field input, .field select { min-width: 0; }
 .filter-bar .btn { grid-column: 1 / -1; }
 .list { display: grid; }
 .li {
@@ -383,7 +384,7 @@ button.li:hover { background: var(--surface-2); }
 .li .bar span { display: block; height: 100%; background: var(--ink); }
 
 /* admin */
-.admin-grid { display: grid; gap: 16px; }
+.admin-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
 .admin-card { padding: 18px; }
 .admin-card h2 { font-size: 1.2rem; margin-bottom: 4px; }
 .admin-card > p.muted { margin: 0 0 12px; font-size: .9rem; }
@@ -423,6 +424,41 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
 .ios-steps { padding-left: 20px; margin: 14px 0 18px; display: grid; gap: 10px; }
 @media (max-width: 420px) { .install-card { flex-wrap: wrap; } .install-card .btn { width: 100%; } }
 
+.kv { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; width: 100%; max-width: 520px; margin: 0; padding: 4px 14px; text-align: left; }
+.kv div { padding: 9px 0; border-bottom: 1px solid var(--line); min-width: 0; }
+.kv div:nth-last-child(-n+2) { border-bottom: 0; }
+.kv dt { font-size: .74rem; color: var(--ink-3); margin: 0; }
+.kv dd { margin: 1px 0 0; font-weight: 600; font-size: .92rem; overflow-wrap: anywhere; }
+.kv.full { max-width: none; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); padding: 2px 0; background: none; border: 0; box-shadow: none; }
+.kv.full div { border-bottom: 1px solid var(--line); }
+.toggle { align-self: end; min-height: 48px; align-items: center; font-weight: 500; }
+.li .meta { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: .78rem; color: var(--ink-2); margin-top: 5px; }
+.li .meta span { white-space: nowrap; }
+.li .meta .c { color: var(--good); font-weight: 600; }
+.li .meta .w { color: var(--accent); font-weight: 600; }
+.li .tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.li .tags .tag { margin: 0; }
+.tag.pass { background: var(--good-soft); color: var(--good); }
+.tag.fail { background: var(--accent-soft); color: var(--accent); }
+.tag.info { background: var(--surface-2); color: var(--ink-2); border: 1px solid var(--line); }
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; margin: 4px 0 14px; }
+.tile { background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+.tile b { display: block; font: 800 1.3rem var(--display); }
+.tile span { font-size: .76rem; color: var(--ink-2); }
+.results-card { order: -1; }
+.admin-filters { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); margin-top: 0; }
+.admin-filters .wide-f { grid-column: 1 / -1; }
+.dlg-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px; }
+.wide-dlg { width: min(760px, 100%); }
+.at-q { padding: 12px 0; border-top: 1px solid var(--line); display: grid; gap: 4px; }
+.at-q .top { display: flex; justify-content: space-between; gap: 10px; font-size: .82rem; color: var(--ink-2); }
+.at-q .top b { color: var(--accent); }
+.at-q.ok .top b { color: var(--good); }
+.at-q .txt { font-weight: 600; font-size: .94rem; }
+.at-q .ans { font-size: .86rem; }
+.ua { font-size: .74rem; color: var(--ink-3); overflow-wrap: anywhere; margin: 8px 0 0; }
+@media (min-width: 900px) { .admin-filters { grid-template-columns: 2fr 1fr 1fr 1fr 1fr; } .admin-filters .wide-f { grid-column: auto; } }
+
 /* phones: dialogs become bottom sheets */
 @media (max-width: 640px) {
   dialog { margin: auto 0 0; width: 100%; border-radius: var(--r-lg) var(--r-lg) 0 0; max-height: 94vh; }
@@ -450,7 +486,7 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
   .qcard { padding: 28px; }
   .filter-bar { grid-template-columns: 1fr 1fr auto; }
   .filter-bar .btn { grid-column: auto; }
-  .admin-grid { grid-template-columns: 1fr 1fr; }
+  .admin-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .admin-grid .wide { grid-column: 1 / -1; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -597,6 +633,7 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
         <div class="stat"><b id="rTime">–</b><span>time taken</span></div>
         <div class="stat"><b id="rLevel">–</b><span>level</span></div>
       </div>
+      <dl class="kv card" id="rDetails"></dl>
       <div class="res-actions">
         <button class="btn" data-go="home" type="button">New test</button>
         <button class="btn ghost" id="rBoardBtn" type="button">Leaderboard</button>
@@ -622,6 +659,10 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
       <div class="field"><label for="bLevel">Level</label>
         <select id="bLevel"><option value="">All levels</option><option value="BEGINNER">Beginner</option><option value="INTERMEDIATE">Intermediate</option><option value="ADVANCED">Advanced</option></select>
       </div>
+      <div class="field"><label for="bDays">Period</label>
+        <select id="bDays"><option value="">All time</option><option value="1">Today</option><option value="7">Last 7 days</option><option value="30">Last 30 days</option></select>
+      </div>
+      <label class="agree toggle"><input type="checkbox" id="bBest" checked> Best attempt per person</label>
       <button class="btn small" type="submit">Show</button>
     </form>
     <div class="card list" id="boardList"></div>
@@ -667,12 +708,24 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
           </form>
           <ul class="prep-log" id="prepLog" aria-live="polite"></ul>
         </div>
-        <div class="card admin-card wide">
+        <div class="card admin-card wide results-card">
           <h2>All results</h2>
+          <p class="muted">Every test, including ones that were started but not submitted. Tap a row for full detail.</p>
+          <div class="tiles" id="aSummary"></div>
+          <form class="filter-bar admin-filters" id="aFilter">
+            <div class="field wide-f"><label for="fSearch">Search name, ID or team</label><input id="fSearch" type="search" placeholder="e.g. Neha or E100"></div>
+            <div class="field"><label for="fStatus">Status</label>
+              <select id="fStatus"><option value="">All</option><option value="SUBMITTED">Submitted</option><option value="AUTO">Auto-submitted</option><option value="IN_PROGRESS">In progress</option><option value="ABANDONED">Started, not submitted</option><option value="PASS">Pass</option><option value="FAIL">Fail</option></select>
+            </div>
+            <div class="field"><label for="fTopic">Topic</label><select id="fTopic"><option value="">All topics</option></select></div>
+            <div class="field"><label for="fFrom">From</label><input id="fFrom" type="date"></div>
+            <div class="field"><label for="fTo">To</label><input id="fTo" type="date"></div>
+          </form>
           <div class="row-btns">
             <button class="btn small" id="csvBtn" type="button">Download CSV (Excel)</button>
             <button class="btn small ghost" id="aRefresh" type="button">Refresh</button>
           </div>
+          <p class="muted" id="aCount" style="margin:0 0 4px;font-size:.88rem"></p>
           <div class="list" id="adminList"></div>
         </div>
         <div class="card admin-card wide">
@@ -791,6 +844,15 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
   </div>
 </dialog>
 
+<!-- admin: one attempt in full detail -->
+<dialog id="attemptDlg" aria-labelledby="atTitle" class="wide-dlg">
+  <div class="sheet-in">
+    <div class="sheet-grip" aria-hidden="true"></div>
+    <div class="dlg-head"><h2 id="atTitle">Attempt</h2><button class="btn small ghost" type="button" id="atClose">Close</button></div>
+    <div id="atBody"></div>
+  </div>
+</dialog>
+
 <!-- how to install, per phone/browser -->
 <dialog id="installDlg" aria-labelledby="instTitle">
   <div class="sheet-in">
@@ -856,6 +918,16 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
   const mmss = s => `${Math.floor(s / 60)}:${String(Math.max(0, s % 60)).padStart(2, "0")}`;
   const fmtDur = s => s >= 60 ? `${Math.floor(s / 60)}m ${s % 60}s` : `${s}s`;
   const fmtDate = iso => iso ? new Date(iso).toLocaleString(undefined, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "";
+  const fmtTime = iso => iso ? new Date(iso).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }) : "";
+  const fmtDay = iso => iso ? new Date(iso).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }) : "";
+  /** "28 Oct 2026, 02:05 pm to 02:21 pm" */
+  function fmtRange(a, b) {
+    if (!a) return "";
+    if (!b) return `${fmtDay(a)}, ${fmtTime(a)}, not finished`;
+    return fmtDay(a) === fmtDay(b) ? `${fmtDay(a)}, ${fmtTime(a)} to ${fmtTime(b)}` : `${fmtDate(a)} to ${fmtDate(b)}`;
+  }
+  const kv = (label, value) => el("div", {}, el("dt", {}, label), el("dd", {}, value ?? "–"));
+  const STATUS_TAG = { IN_PROGRESS: ["In progress", "info"], ABANDONED: ["Started, not submitted", "warn"] };
   const modelName = id => {
     if (!id) return "AI";
     if (id === "demo") return "Demo";
@@ -1003,7 +1075,8 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
     const body = {
       empId: $("#fEmp").value.trim(), empName: $("#fName").value.trim(),
       department: $("#fDept").value.trim() || null, topic: $("#topicInput").value.trim(),
-      level: document.querySelector("input[name=lvl]:checked").value
+      level: document.querySelector("input[name=lvl]:checked").value,
+      installed: standalone
     };
     const errBox = $("#startErr");
     const fail = m => { errBox.textContent = m; errBox.hidden = false; };
@@ -1046,7 +1119,7 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
       paper.deadline = Date.now() + paper.timeLimitSeconds * 1000;
       store.set("active", { paper, answers: {}, warnings: 0 });
       loadAi();
-      beginQuiz(paper, {}, 0);
+      beginQuiz(paper, {}, 0, {});
     } catch (err) {
       show("home");
       $("#startDlg").showModal();
@@ -1056,8 +1129,9 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
   }
 
   // ---------- exam ----------
-  function beginQuiz(paper, answers, warnings) {
-    Object.assign(state, { paper, answers, idx: 0, deadline: paper.deadline, inQuiz: true, warnings: warnings || 0 });
+  function beginQuiz(paper, answers, warnings, saved = {}) {
+    Object.assign(state, { paper, answers, idx: 0, deadline: paper.deadline, inQuiz: true, warnings: warnings || 0,
+      times: saved.times || {}, changes: saved.changes || {}, qStart: Date.now() });
     document.body.classList.add("testing");
     $("#quizTitle").textContent = paper.topic;
     $("#quizWho").textContent = `${LEVEL_NAME[paper.level] || paper.level}${paper.empName ? " · " + paper.empName : ""}`;
@@ -1106,22 +1180,33 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
     if (dir) { void card.offsetWidth; card.classList.add(dir > 0 ? "enter-r" : "enter-l"); }
     sync();
   }
+  /** add the time spent on the current question so far (per question, in ms) */
+  function flushTime() {
+    if (!state.paper || !state.qStart) return;
+    const q = state.paper.questions[state.idx], now = Date.now();
+    if (q) state.times[q.itemId] = (state.times[q.itemId] || 0) + (now - state.qStart);
+    state.qStart = now;
+  }
   function go(i) {
     const n = state.paper.questions.length;
     if (i < 0 || i >= n || i === state.idx) return;
+    flushTime();
     const dir = i > state.idx ? 1 : -1;
     state.idx = i; renderQ(dir);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
   function choose(j) {
-    const q = state.paper.questions[state.idx];
-    if (state.answers[q.itemId] === j) delete state.answers[q.itemId]; else state.answers[q.itemId] = j;
+    const q = state.paper.questions[state.idx], prev = state.answers[q.itemId];
+    if (prev != null) state.changes[q.itemId] = (state.changes[q.itemId] || 0) + 1;  // changed or cleared an answer
+    if (prev === j) delete state.answers[q.itemId]; else state.answers[q.itemId] = j;
     saveActive();
     renderQ();
   }
   function saveActive(extra = {}) {
+    flushTime();
     const cur = store.get("active") || {};
-    store.set("active", { ...cur, paper: state.paper, answers: state.answers, warnings: state.warnings, ...extra });
+    store.set("active", { ...cur, paper: state.paper, answers: state.answers, warnings: state.warnings,
+      times: state.times, changes: state.changes, ...extra });
   }
   $("#prevBtn").addEventListener("click", () => go(state.idx - 1));
   $("#nextBtn").addEventListener("click", () => state.idx < state.paper.questions.length - 1 ? go(state.idx + 1) : askSubmit());
@@ -1174,9 +1259,11 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
   $("#subGo").addEventListener("click", () => { $("#submitDlg").close(); finish("MANUAL"); });
 
   function payload(reason) {
-    const answers = {};
+    flushTime();
+    const answers = {}, timings = {};
     for (const [k, v] of Object.entries(state.answers)) if (v != null) answers[k] = v;
-    return { answers, reason };
+    for (const [k, ms] of Object.entries(state.times || {})) timings[k] = Math.round(ms / 1000);
+    return { answers, reason, timings, changes: state.changes || {}, warnings: state.warnings || 0 };
   }
   let submitting = false;
   /** Leave exam mode and forget the saved test on this phone. */
@@ -1322,6 +1409,12 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
     $("#rRankOf").textContent = r.rank ? `of ${r.rankOutOf} in this topic` : "rank";
     $("#rTime").textContent = fmtDur(r.durationSeconds);
     $("#rLevel").textContent = LEVEL_NAME[r.level] || r.level;
+    $("#rDetails").replaceChildren(
+      kv("Name", `${r.empName} (${r.empId})`),
+      kv("Result", r.passed ? `Pass (${r.passPercent}% needed)` : `Fail (${r.passPercent}% needed)`),
+      kv("Correct", r.score), kv("Wrong", r.wrong ?? "–"),
+      kv("Not answered", r.skipped ?? "–"), kv("Ended", END_TAG[r.endReason] || "Submitted"),
+      kv("Started", fmtDate(r.startedAt)), kv("Finished", fmtDate(r.submittedAt)));
     setFilter("all");
   }
   function renderReview() {
@@ -1352,26 +1445,41 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
   });
 
   // ---------- lists ----------
-  function scoreCell(score, total, pct) {
-    return el("div", { class: "score" }, el("b", {}, `${score}/${total}`), el("small", {}, `${pct}%`));
+  function scoreCell(score, total, pct, passed) {
+    return el("div", { class: "score" }, el("b", {}, `${score}/${total}`), el("small", {}, `${pct}%`),
+      passed == null ? null : el("div", {}, el("span", { class: "tag " + (passed ? "pass" : "fail"), style: "margin:4px 0 0;display:inline-block" }, passed ? "Pass" : "Fail")));
   }
   function loading(box) { box.replaceChildren(el("div", { class: "empty" }, "Loading…")); }
+  /** "✓ 16  ✗ 3  – 1  12m 30s" */
+  function metaLine(r, extra = []) {
+    return el("div", { class: "meta" },
+      el("span", { class: "c" }, `✓ ${r.score}`), el("span", { class: "w" }, `✗ ${r.wrong}`), el("span", {}, `– ${r.skipped} skipped`),
+      el("span", {}, `⏱ ${fmtDur(r.durationSeconds)}`), ...extra);
+  }
+  function endTag(reason) {
+    return END_TAG[reason] ? el("span", { class: "tag " + (reason === "TIMEOUT" ? "warn" : "no") }, END_TAG[reason]) : null;
+  }
 
   $("#boardForm").addEventListener("submit", e => { e.preventDefault(); loadBoard(); });
+  ["#bLevel", "#bDays", "#bBest"].forEach(id => $(id).addEventListener("change", () => loadBoard()));
   async function loadBoard() {
     const box = $("#boardList"); loading(box);
-    const p = new URLSearchParams({ limit: "50" });
+    const p = new URLSearchParams({ limit: "100", best: String($("#bBest").checked) });
     if ($("#bTopic").value.trim()) p.set("topic", $("#bTopic").value.trim());
     if ($("#bLevel").value) p.set("level", $("#bLevel").value);
+    if ($("#bDays").value) p.set("days", $("#bDays").value);
     try {
       const rows = await api("/api/leaderboard?" + p);
       if (!rows.length) { box.replaceChildren(el("div", { class: "empty" }, "No results yet for this filter. Be the first to take the test.")); return; }
       box.replaceChildren(...rows.map(r => el("div", { class: "li" },
         el("span", { class: "rank" + (r.rank <= 3 ? " r" + r.rank : "") }, r.rank),
-        el("div", { class: "who" }, el("b", {}, r.empName),
+        el("div", { class: "who" },
+          el("b", {}, `${r.empName} (${r.empId})`),
           el("small", {}, [r.topic, LEVEL_NAME[r.level], r.department].filter(Boolean).join(", ")),
-          el("div", { class: "bar" }, el("span", { style: `width:${r.percentage}%` }))),
-        scoreCell(r.score, r.total, r.percentage))));
+          metaLine(r),
+          el("div", { class: "meta" }, el("span", {}, fmtRange(r.startedAt, r.submittedAt))),
+          endTag(r.endReason) ? el("div", { class: "tags" }, endTag(r.endReason)) : null),
+        scoreCell(r.score, r.total, r.percentage, r.passed))));
     } catch (err) { box.replaceChildren(el("div", { class: "empty" }, err.message)); }
   }
 
@@ -1383,8 +1491,11 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
       if (!rows.length) { box.replaceChildren(el("div", { class: "empty" }, "No submitted tests for this employee ID yet.")); return; }
       box.replaceChildren(...rows.map(r => el("button", { class: "li", type: "button", onclick: () => openResult(r.attemptId) },
         el("span", { class: "rank" }, LEVEL_NAME[r.level].charAt(0)),
-        el("div", { class: "who" }, el("b", {}, r.topic), el("small", {}, `${LEVEL_NAME[r.level]}, ${fmtDate(r.submittedAt)}, ${fmtDur(r.durationSeconds)}`)),
-        scoreCell(r.score, r.total, r.percentage))));
+        el("div", { class: "who" }, el("b", {}, r.topic), el("small", {}, LEVEL_NAME[r.level]),
+          metaLine(r),
+          el("div", { class: "meta" }, el("span", {}, fmtRange(r.startedAt, r.submittedAt))),
+          endTag(r.endReason) ? el("div", { class: "tags" }, endTag(r.endReason)) : null),
+        scoreCell(r.score, r.total, r.percentage, r.passed))));
     } catch (err) { box.replaceChildren(el("div", { class: "empty" }, err.message)); }
   });
   async function openResult(id) { try { showResult(await api(`/api/quiz/${id}/result`)); } catch (err) { toast(err.message); } }
@@ -1402,20 +1513,120 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
     } catch (err) { toast(err.message); }
   });
   $("#aRefresh").addEventListener("click", () => { loadAdmin(); loadAi(); });
+  let adminRows = [];
   async function loadAdmin() {
     const box = $("#adminList"); loading(box);
     try {
-      const rows = await api("/api/admin/attempts?limit=500", { headers: adminHeaders() });
-      if (!rows.length) { box.replaceChildren(el("div", { class: "empty" }, "No tests submitted yet.")); return; }
-      box.replaceChildren(...rows.map(r => el("button", { class: "li", type: "button", onclick: () => openResult(r.attemptId) },
+      adminRows = await api("/api/admin/attempts?limit=1000", { headers: adminHeaders() });
+      const topics = [...new Set(adminRows.map(r => r.topic))].sort();
+      const cur = $("#fTopic").value;
+      $("#fTopic").replaceChildren(el("option", { value: "" }, "All topics"), ...topics.map(t => el("option", { value: t }, t)));
+      $("#fTopic").value = topics.includes(cur) ? cur : "";
+      renderAdmin();
+    } catch (err) { box.replaceChildren(el("div", { class: "empty" }, err.message)); }
+  }
+  const AUTO = new Set(["TAB_SWITCH", "COPY", "CLOSED"]);
+  function adminFiltered() {
+    const q = $("#fSearch").value.trim().toLowerCase(), st = $("#fStatus").value, tp = $("#fTopic").value;
+    const from = $("#fFrom").value ? new Date($("#fFrom").value + "T00:00:00") : null;
+    const to = $("#fTo").value ? new Date($("#fTo").value + "T23:59:59") : null;
+    return adminRows.filter(r => {
+      if (q && ![r.empName, r.empId, r.department].some(v => (v || "").toLowerCase().includes(q))) return false;
+      if (tp && r.topic !== tp) return false;
+      const started = new Date(r.startedAt);
+      if (from && started < from) return false;
+      if (to && started > to) return false;
+      const done = r.status === "SUBMITTED";
+      switch (st) {
+        case "SUBMITTED": return done;
+        case "AUTO": return done && AUTO.has(r.endReason);
+        case "IN_PROGRESS": return r.status === "IN_PROGRESS";
+        case "ABANDONED": return r.status === "ABANDONED";
+        case "PASS": return done && r.passed;
+        case "FAIL": return done && !r.passed;
+        default: return true;
+      }
+    });
+  }
+  function renderAdmin() {
+    const rows = adminFiltered(), done = rows.filter(r => r.status === "SUBMITTED");
+    const avg = (xs, f) => xs.length ? xs.reduce((a, x) => a + f(x), 0) / xs.length : 0;
+    const tile = (v, label) => el("div", { class: "tile" }, el("b", {}, v), el("span", {}, label));
+    $("#aSummary").replaceChildren(
+      tile(rows.length, "tests started"),
+      tile(done.length, "submitted"),
+      tile(done.length ? Math.round(avg(done, r => r.percentage)) + "%" : "–", "average score"),
+      tile(done.length ? Math.round(done.filter(r => r.passed).length * 100 / done.length) + "%" : "–", "pass rate"),
+      tile(done.filter(r => AUTO.has(r.endReason)).length, "auto-submitted"),
+      tile(done.length ? fmtDur(Math.round(avg(done, r => r.durationSeconds))) : "–", "average time"),
+      tile(rows.filter(r => r.status === "IN_PROGRESS").length, "in progress now"),
+      tile(rows.filter(r => r.status === "ABANDONED").length, "started, not submitted"));
+    $("#aCount").textContent = rows.length === adminRows.length ? `${rows.length} tests` : `Showing ${rows.length} of ${adminRows.length} tests`;
+    const box = $("#adminList");
+    if (!rows.length) { box.replaceChildren(el("div", { class: "empty" }, adminRows.length ? "No tests match these filters." : "No tests yet.")); return; }
+    box.replaceChildren(...rows.slice(0, 300).map(r => {
+      const doneRow = r.status === "SUBMITTED", st = STATUS_TAG[r.status];
+      return el("button", { class: "li", type: "button", onclick: () => openAttempt(r.attemptId) },
         el("span", { class: "rank" }, (r.empName || "?").charAt(0).toUpperCase()),
         el("div", { class: "who" },
           el("b", {}, `${r.empName} (${r.empId})`),
-          el("small", {}, `${r.topic}, ${LEVEL_NAME[r.level]}, ${fmtDate(r.submittedAt)}`),
-          END_TAG[r.endReason] ? el("span", { class: "tag " + (r.endReason === "TIMEOUT" ? "warn" : "no"), style: "margin:6px 0 0;display:inline-block" }, END_TAG[r.endReason]) : null),
-        scoreCell(r.score, r.total, r.percentage))));
-    } catch (err) { box.replaceChildren(el("div", { class: "empty" }, err.message)); }
+          el("small", {}, [r.topic, LEVEL_NAME[r.level], r.department].filter(Boolean).join(", ")),
+          doneRow ? metaLine(r) : el("div", { class: "meta" }, el("span", {}, `${r.answered || 0} of ${r.total} answered so far`)),
+          el("div", { class: "meta" }, el("span", {}, fmtRange(r.startedAt, r.submittedAt)), r.device ? el("span", {}, `📱 ${r.device}${r.installedApp ? ", app" : ""}`) : null),
+          el("div", { class: "tags" }, st ? el("span", { class: "tag " + st[1] }, st[0]) : null, doneRow ? endTag(r.endReason) : null,
+            r.warnings ? el("span", { class: "tag warn" }, `${r.warnings} warning${r.warnings > 1 ? "s" : ""}`) : null)),
+        doneRow ? scoreCell(r.score, r.total, r.percentage, r.passed) : el("div", { class: "score" }, el("b", {}, "–"), el("small", {}, `${r.total} Q`)));
+    }));
+    if (rows.length > 300) box.append(el("div", { class: "empty" }, `Showing the first 300. Use the filters or download the CSV for all ${rows.length}.`));
   }
+  ["#fSearch", "#fStatus", "#fTopic", "#fFrom", "#fTo"].forEach(id => $(id).addEventListener("input", renderAdmin));
+  $("#aFilter").addEventListener("submit", e => e.preventDefault());
+
+  async function openAttempt(id) {
+    const body = $("#atBody");
+    body.replaceChildren(el("div", { class: "empty" }, "Loading…"));
+    $("#atTitle").textContent = "Test details";
+    $("#attemptDlg").showModal();
+    try {
+      const d = await api(`/api/admin/attempts/${encodeURIComponent(id)}`, { headers: adminHeaders() });
+      const r = d.row, doneRow = r.status === "SUBMITTED";
+      $("#atTitle").textContent = `${r.empName} (${r.empId})`;
+      const statusText = doneRow ? "Submitted" : (STATUS_TAG[r.status] || ["–"])[0];
+      const timed = d.review.filter(q => q.timeSpentSeconds != null);
+      const slowest = [...timed].sort((a, b) => b.timeSpentSeconds - a.timeSpentSeconds).slice(0, 3).map(q => q.number);
+      body.replaceChildren(
+        el("dl", { class: "kv full" },
+          kv("Employee ID", r.empId), kv("Name", r.empName), kv("Team", r.department || "–"),
+          kv("Topic", r.topic), kv("Level", LEVEL_NAME[r.level]), kv("Status", statusText),
+          kv("Score", doneRow ? `${r.score}/${r.total} (${r.percentage}%)` : "–"),
+          kv("Result", doneRow ? (r.passed ? "Pass" : "Fail") : "–"),
+          kv("Correct / wrong / skipped", doneRow ? `${r.score} / ${r.wrong} / ${r.skipped}` : `${r.answered || 0} answered`),
+          kv("Rank in topic", d.rank ? `#${d.rank} of ${d.rankOutOf}` : "–"),
+          kv("Started", fmtDate(r.startedAt)), kv("Finished", r.submittedAt ? fmtDate(r.submittedAt) : "Not finished"),
+          kv("Time taken", doneRow ? fmtDur(r.durationSeconds) : "–"), kv("Time limit", `${Math.round(r.timeLimitSeconds / 60)} min`),
+          kv("How it ended", doneRow ? (END_TAG[r.endReason] || "Submitted by employee") : "–"),
+          kv("Leave warnings used", r.warnings || 0),
+          kv("Device", r.device || "–"), kv("Opened from", r.installedApp == null ? "–" : r.installedApp ? "Installed app" : "Browser"),
+          kv("Attempt ID", r.attemptId)),
+        d.userAgent ? el("p", { class: "ua" }, "Browser details: " + d.userAgent) : null,
+        el("h3", { style: "margin:18px 0 6px;font-size:1.05rem" }, "Question by question"),
+        timed.length ? el("p", { class: "muted", style: "margin:0 0 6px;font-size:.86rem" },
+          `Average ${fmtDur(Math.round(timed.reduce((a, q) => a + q.timeSpentSeconds, 0) / timed.length))} per question. Longest: Q${slowest.join(", Q")}.`) : null,
+        ...d.review.map(q => {
+          const mine = q.selected == null ? "Not answered" : `${LETTERS[q.selected]}. ${q.options[q.selected]}`;
+          const right = `${LETTERS[q.correct]}. ${q.options[q.correct]}`;
+          return el("div", { class: "at-q" + (q.isCorrect ? " ok" : "") },
+            el("div", { class: "top" },
+              el("b", {}, `Q${q.number} ${q.selected == null ? "skipped" : q.isCorrect ? "correct" : "wrong"}`),
+              el("span", {}, [q.timeSpentSeconds != null ? `⏱ ${fmtDur(q.timeSpentSeconds)}` : null,
+                q.answerChanges ? `changed ${q.answerChanges}×` : null].filter(Boolean).join("   "))),
+            el("div", { class: "txt" }, rich(q.text)),
+            el("div", { class: "ans" }, "Answer: ", rich(mine)),
+            q.isCorrect ? null : el("div", { class: "ans", style: "color:var(--good)" }, "Correct: ", rich(right)));
+        }));
+    } catch (err) { body.replaceChildren(el("div", { class: "empty" }, err.message)); }
+  }
+  $("#atClose").addEventListener("click", () => $("#attemptDlg").close());
   $("#csvBtn").addEventListener("click", async () => {
     try {
       const res = await fetch(API + "/api/admin/attempts.csv", { headers: adminHeaders() });
@@ -1585,7 +1796,8 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
 
   const active = store.get("active");
   if (active && active.paper) {
-    Object.assign(state, { paper: active.paper, answers: active.answers || {}, warnings: active.warnings || 0, inQuiz: true });
+    Object.assign(state, { paper: active.paper, answers: active.answers || {}, warnings: active.warnings || 0, inQuiz: true,
+      times: active.times || {}, changes: active.changes || {}, qStart: 0, idx: 0 });
     if (active.ended) {
       // the exam ended while this page was closed/hidden: finish it and show the result
       document.body.classList.add("testing"); show("prep");
@@ -1596,7 +1808,7 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
       $("#prepTitle").textContent = "Submitting your test"; $("#prepMsg").textContent = END_TEXT.TIMEOUT;
       finish("TIMEOUT");
     } else {
-      beginQuiz(active.paper, active.answers || {}, active.warnings || 0);
+      beginQuiz(active.paper, active.answers || {}, active.warnings || 0, active);
     }
   }
 })();

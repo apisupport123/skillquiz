@@ -127,6 +127,7 @@ Isliye: **test se ek din pehle Admin → "Prepare topics for test day"** mein to
 |---|---|---|
 | `QUIZ_QUESTIONS_PER_TEST` | 20 | ek paper mein kitne questions |
 | `QUIZ_TIME_LIMIT_MINUTES` | 30 | timer |
+| `QUIZ_PASS_PERCENT` | 60 | itne % ya zyada = Pass |
 | `QUIZ_TARGET_POOL_SIZE` | 90 | background mein pool kitna bade |
 | `QUIZ_MAX_AI_CALLS_PER_MINUTE` | 6 | free AI limit ke andar rehne ke liye |
 | `GEMINI_MODELS` | gemini-3.1-flash-lite,gemini-3.6-flash | AI models, order mein try hote hain |
