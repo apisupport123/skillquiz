@@ -15,14 +15,9 @@ import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Calls Google Gemini (free tier key from aistudio.google.com) and asks for strict JSON.
@@ -35,23 +30,18 @@ public class GeminiQuestionGenerator implements QuestionGenerator {
     private static final Logger log = LoggerFactory.getLogger(GeminiQuestionGenerator.class);
     private static final String BASE = "https://generativelanguage.googleapis.com/v1beta/models/";
 
-    private static final ZoneId PACIFIC = ZoneId.of("America/Los_Angeles"); // Google resets daily quota at midnight PT
-
     private final RestClient http;
     private final ObjectMapper mapper;
     private final String apiKey;
-    /** tried in order; free daily quota is PER MODEL, so a chain multiplies capacity */
-    private final List<String> models;
-    /** model -> moment its daily quota resets (set when Google says "per day" quota is used up) */
-    private final Map<String, Instant> exhaustedUntil = new ConcurrentHashMap<>();
+    /** tracks per-model daily usage (free daily quota is PER MODEL, so a chain multiplies capacity) */
+    private final AiUsageService usage;
 
-    public GeminiQuestionGenerator(ObjectMapper mapper,
-                                   @Value("${gemini.api-key:}") String apiKey,
-                                   @Value("${gemini.models:gemini-3.1-flash-lite,gemini-3.6-flash}") String models) {
+    public GeminiQuestionGenerator(ObjectMapper mapper, AiUsageService usage,
+                                   @Value("${gemini.api-key:}") String apiKey) {
         this.mapper = mapper;
+        this.usage = usage;
         this.apiKey = apiKey;
-        this.models = Arrays.stream(models.split(",")).map(String::trim).filter(m -> !m.isEmpty()).toList();
-        log.info("AI models (in order): {}", this.models);
+        log.info("AI models (in order): {}", usage.models());
         SimpleClientHttpRequestFactory rf = new SimpleClientHttpRequestFactory();
         rf.setConnectTimeout(10_000);
         rf.setReadTimeout(150_000); // AI can take a while for 15-20 questions
@@ -76,15 +66,13 @@ public class GeminiQuestionGenerator implements QuestionGenerator {
                         "responseSchema", schema()));
 
         ApiException lastError = null;
-        for (String model : models) {
-            Instant until = exhaustedUntil.get(model);
-            if (until != null && Instant.now().isBefore(until)) continue; // today's quota already used
+        for (String model : usage.models()) {
+            if (!usage.canUse(model)) continue; // today's quota already used
             try {
                 return parse(callWithRetry(model, body));
             } catch (DailyQuotaExceeded e) {
-                Instant reset = nextPacificMidnight();
-                exhaustedUntil.put(model, reset);
-                log.warn("Daily free quota used up for {} - skipping it until {}", model, reset);
+                usage.markExhausted(model);
+                log.warn("Daily free quota used up for {} - skipping it until tomorrow (Pacific)", model);
                 lastError = new ApiException(503, "Aaj ki free AI limit khatam ho gayi. Jo topics pehle se bane hain wo chalenge; naya topic kal subah try karo.");
             } catch (ModelUnavailable e) {
                 log.warn("Model {} not available ({}), trying next", model, e.getMessage());
@@ -105,9 +93,6 @@ public class GeminiQuestionGenerator implements QuestionGenerator {
         ModelUnavailable(String msg) { super(msg); }
     }
 
-    private static Instant nextPacificMidnight() {
-        return ZonedDateTime.now(PACIFIC).toLocalDate().plusDays(1).atStartOfDay(PACIFIC).plusMinutes(5).toInstant();
-    }
 
     private String callWithRetry(String model, Map<String, Object> body) {
         // every attempt counts against the daily quota, so retry only once and only for per-minute/5xx errors
@@ -116,13 +101,15 @@ public class GeminiQuestionGenerator implements QuestionGenerator {
         for (long wait : backoffMs) {
             sleep(wait);
             try {
-                return http.post()
+                String out = http.post()
                         .uri(BASE + model + ":generateContent")
                         .header("x-goog-api-key", apiKey)
                         .contentType(MediaType.APPLICATION_JSON)
                         .body(body)
                         .retrieve()
                         .body(String.class);
+                usage.recordCall(model);
+                return out;
             } catch (HttpStatusCodeException e) {
                 HttpStatusCode sc = e.getStatusCode();
                 String errBody = e.getResponseBodyAsString();
@@ -131,6 +118,7 @@ public class GeminiQuestionGenerator implements QuestionGenerator {
                     throw new DailyQuotaExceeded();
                 }
                 if (sc.value() == 429 || sc.is5xxServerError()) {
+                    if (sc.is5xxServerError()) usage.recordCall(model);
                     last = e;
                     continue; // per-minute limit or Google hiccup: one retry
                 }
@@ -202,6 +190,7 @@ public class GeminiQuestionGenerator implements QuestionGenerator {
 
                 Otherwise return validTopic=true and exactly %d questions with these rules:
                 - each question tests a DIFFERENT concept; cover the breadth of the topic
+                - never ask the same thing twice in different words
                 - exactly 4 options, exactly one correct; distractors must be plausible
                 - never use "All of the above" / "None of the above" / "Both A and B"
                 - options must not reveal the answer by being much longer or more detailed
@@ -211,7 +200,7 @@ public class GeminiQuestionGenerator implements QuestionGenerator {
                 """.formatted(count));
         if (avoid != null && !avoid.isEmpty()) {
             sb.append("\nDo NOT repeat or rephrase any of these existing questions:\n");
-            avoid.forEach(a -> sb.append("- ").append(truncate(a, 140)).append("\n"));
+            avoid.forEach(a -> sb.append("- ").append(truncate(a, 110)).append("\n"));
         }
         return sb.toString();
     }

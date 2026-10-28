@@ -22,6 +22,8 @@ import java.util.stream.IntStream;
 @Service
 public class QuizService {
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(QuizService.class);
+
     private final QuestionPoolService pool;
     private final PoolRefiller refiller;
     private final QuestionRepository questions;
@@ -51,6 +53,8 @@ public class QuizService {
         Level level = req.level();
         int perTest = props.questionsPerTest();
 
+        String empId = req.empId().trim();
+
         // Blocking only when the pool is too small (first person on a new topic waits ~20-40s)
         pool.ensureAtLeast(key, label, level, Math.max(props.minPoolSize(), perTest));
 
@@ -58,22 +62,34 @@ public class QuizService {
         if (all.isEmpty()) {
             throw new ApiException(503, "Is topic ke questions abhi ready nahi hain. Thodi der baad try karo.");
         }
-        Set<Long> seen = new HashSet<>(attempts.seenQuestionIds(req.empId().trim(), key, level));
-
+        Set<Long> seen = new HashSet<>(attempts.seenQuestionIds(empId, key, level));
         List<Question> fresh = new ArrayList<>(all.stream().filter(q -> !seen.contains(q.getId())).toList());
-        List<Question> old = new ArrayList<>(all.stream().filter(q -> seen.contains(q.getId())).toList());
-        Collections.shuffle(fresh, random);
-        Collections.shuffle(old, random);
 
-        List<Question> paper = new ArrayList<>(fresh.subList(0, Math.min(perTest, fresh.size())));
-        for (Question q : old) {
-            if (paper.size() >= perTest) break;
-            paper.add(q);
+        // Retake: this employee must never get a question again. Ask AI for more if needed.
+        if (fresh.size() < perTest && all.size() < props.maxPoolSize()) {
+            int needed = Math.min(props.maxPoolSize(), all.size() + (perTest - fresh.size()) + 5);
+            try {
+                pool.ensureAtLeast(key, label, level, needed);
+            } catch (ApiException e) {
+                log.info("Could not grow pool for retake of {} on {}/{}: {}", empId, key, level, e.getMessage());
+            }
+            all = questions.findByTopicKeyAndLevelAndActiveTrue(key, level);
+            fresh = new ArrayList<>(all.stream().filter(q -> !seen.contains(q.getId())).toList());
         }
-        Collections.shuffle(paper, random);
+        if (fresh.size() < perTest) {
+            if (!seen.isEmpty()) {
+                throw new ApiException(409, "Aapne '" + label + "' (" + level.name().toLowerCase()
+                        + ") ke lagbhag saare questions de diye hain. Naye questions abhi ban nahi paaye — "
+                        + "koi aur level/topic try karo ya kal dobara.");
+            }
+            // first attempt but pool smaller than one paper (AI limit hit mid-way): give what we have
+        }
+
+        Collections.shuffle(fresh, random);
+        List<Question> paper = new ArrayList<>(fresh.subList(0, Math.min(perTest, fresh.size())));
 
         Attempt a = new Attempt();
-        a.setEmpId(req.empId().trim());
+        a.setEmpId(empId);
         a.setEmpName(req.empName().trim());
         a.setDepartment(req.department() == null ? null : req.department().trim());
         a.setTopicKey(key);
@@ -93,7 +109,7 @@ public class QuizService {
         // Grow the pool in the background (one AI call) so later people get more variety.
         // Retakes only grow it when this employee has nothing fresh left for a second paper.
         int target = props.targetPoolSize();
-        if (fresh.size() < perTest) target = Math.max(target, all.size() + props.batchSize());
+        if (fresh.size() - perTest < perTest) target = Math.max(target, all.size() + props.batchSize());
         if (all.size() < Math.min(target, props.maxPoolSize())) {
             refiller.refill(key, label, level, target);
         }
@@ -105,7 +121,7 @@ public class QuizService {
     }
 
     @Transactional
-    public ResultResponse submit(String attemptId, Map<Long, Integer> answers) {
+    public ResultResponse submit(String attemptId, Map<Long, Integer> answers, String reason) {
         Attempt a = attempts.findById(attemptId)
                 .orElseThrow(() -> new ApiException(404, "Test nahi mila. Page refresh karke dobara start karo."));
         if (a.isSubmitted()) {
@@ -126,6 +142,7 @@ public class QuizService {
         a.setSubmittedAt(now);
         a.setDurationSeconds((int) Math.min(Duration.between(a.getStartedAt(), now).getSeconds(), Integer.MAX_VALUE));
         a.setSubmitted(true);
+        a.setEndReason(cleanReason(reason));
         attempts.save(a);
         return toResult(a);
     }
@@ -170,7 +187,8 @@ public class QuizService {
         List<TopicStat> popular = attempts.popularTopics(PageRequest.of(0, 12)).stream()
                 .map(r -> new TopicStat((String) r[0], (String) r[1], ((Number) r[2]).longValue()))
                 .toList();
-        return new Stats(attempts.countBySubmittedTrue(), questions.count(), popular);
+        return new Stats(attempts.countBySubmittedTrue(), questions.count(), props.questionsPerTest(),
+                props.timeLimitMinutes(), popular);
     }
 
     // ---------------- helpers ----------------
@@ -194,7 +212,13 @@ public class QuizService {
         }
         return new ResultResponse(a.getId(), a.getEmpId(), a.getEmpName(), a.getDepartment(), a.getTopicLabel(),
                 a.getLevel(), nz(a.getScore()), a.getTotal(), nzd(a.getPercentage()), nz(a.getDurationSeconds()),
-                a.getSubmittedAt(), rank, board.size(), review);
+                a.getSubmittedAt(), rank, board.size(), a.getEndReason(), review);
+    }
+
+    private static final Set<String> REASONS = Set.of("MANUAL", "TIMEOUT", "TAB_SWITCH", "COPY", "CLOSED");
+
+    private static String cleanReason(String r) {
+        return r != null && REASONS.contains(r) ? r : "MANUAL";
     }
 
     /** random permutation of 0..3 as "2,0,3,1" */

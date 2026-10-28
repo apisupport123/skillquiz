@@ -25,7 +25,9 @@ services:
         sync: false
       - key: GEMINI_MODELS
         value: gemini-3.1-flash-lite,gemini-3.6-flash
+      - key: GEMINI_DAILY_LIMITS
+        value: gemini-3.1-flash-lite:500,gemini-3.6-flash:20
       - key: QUIZ_QUESTIONS_PER_TEST
-        value: "10"
+        value: "20"
       - key: QUIZ_TIME_LIMIT_MINUTES
-        value: "15"
+        value: "30"

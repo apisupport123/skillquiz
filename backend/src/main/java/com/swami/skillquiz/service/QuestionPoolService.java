@@ -60,7 +60,8 @@ public class QuestionPoolService {
         if (!got) throw new ApiException(503, "Paper abhi ban raha hai, 1 minute baad try karo.");
         try {
             int rounds = 0;
-            while (size(topicKey, level) < needed && rounds++ < 2) {
+            int maxRounds = Math.min(4, 1 + (int) Math.ceil((needed - size(topicKey, level)) / (double) props.batchSize()));
+            while (size(topicKey, level) < needed && rounds++ < maxRounds) {
                 if (!limiter.tryAcquire()) {
                     if (size(topicKey, level) >= props.questionsPerTest()) return; // good enough for now
                     throw new ApiException(429, "Bahut log ek saath naya topic shuru kar rahe hain. Thodi der mein apne aap dobara try hoga.");
@@ -101,7 +102,7 @@ public class QuestionPoolService {
 
     /** @return number of NEW questions saved */
     private int generateBatch(String topicKey, String topicLabel, Level level) {
-        List<String> avoid = questions.recentTexts(topicKey, level, PageRequest.of(0, 40));
+        List<String> avoid = questions.recentTexts(topicKey, level, PageRequest.of(0, 80));
         log.info("Generating {} questions for '{}' [{}], pool={}", props.batchSize(), topicKey, level, size(topicKey, level));
 
         QuestionGenerator.Result result = generator.generate(topicLabel, level, props.batchSize(), avoid);
@@ -112,11 +113,20 @@ public class QuestionPoolService {
         }
 
         Set<String> seen = new HashSet<>(questions.fingerprints(topicKey, level));
+        // word sets of every existing question, to catch the same question re-worded
+        List<Set<String>> existingWords = new ArrayList<>();
+        for (String t : questions.allTexts(topicKey, level)) existingWords.add(Topics.words(t));
         List<Question> fresh = new ArrayList<>();
+        int nearDupes = 0;
         for (QuestionGenerator.Generated g : result.questions()) {
             Question q = toEntity(g, topicKey, level);
-            if (q != null && seen.add(q.getFingerprint())) fresh.add(q);
+            if (q == null || !seen.add(q.getFingerprint())) continue;
+            Set<String> w = Topics.words(q.getText());
+            if (existingWords.stream().anyMatch(e -> Topics.similarity(e, w) >= 0.7)) { nearDupes++; continue; }
+            existingWords.add(w);
+            fresh.add(q);
         }
+        if (nearDupes > 0) log.info("Skipped {} near-duplicate questions for '{}' [{}]", nearDupes, topicKey, level);
         questions.saveAll(fresh);
         log.info("Saved {} new questions for '{}' [{}]", fresh.size(), topicKey, level);
         return fresh.size();

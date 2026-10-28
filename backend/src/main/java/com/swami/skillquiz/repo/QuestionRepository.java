@@ -19,6 +19,9 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
     @Query("select q.fingerprint from Question q where q.topicKey = :topicKey and q.level = :level")
     List<String> fingerprints(@Param("topicKey") String topicKey, @Param("level") Level level);
 
+    @Query("select q.text from Question q where q.topicKey = :topicKey and q.level = :level")
+    List<String> allTexts(@Param("topicKey") String topicKey, @Param("level") Level level);
+
     @Query("select q.text from Question q where q.topicKey = :topicKey and q.level = :level order by q.id desc")
     List<String> recentTexts(@Param("topicKey") String topicKey, @Param("level") Level level,
                              org.springframework.data.domain.Pageable page);

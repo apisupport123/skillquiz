@@ -1,6 +1,7 @@
 package com.swami.skillquiz.service;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
@@ -91,6 +92,28 @@ public final class Topics {
             else sb.append(Character.toUpperCase(w.charAt(0))).append(w.substring(1));
         }
         return sb.toString();
+    }
+
+    private static final Set<String> STOP = Set.of(
+            "a", "an", "the", "of", "in", "on", "to", "is", "are", "was", "be", "and", "or", "for", "with",
+            "which", "what", "when", "how", "why", "following", "does", "do", "that", "this", "it", "by",
+            "as", "at", "from", "can", "will", "most", "best", "correct", "true", "statement", "about");
+
+    /** meaningful lowercase words of a question, for near-duplicate checks */
+    public static Set<String> words(String text) {
+        Set<String> out = new java.util.HashSet<>();
+        for (String w : text.toLowerCase().split("[^\\p{L}\\p{N}#+.]+")) {
+            if (w.length() > 1 && !STOP.contains(w)) out.add(w);
+        }
+        return out;
+    }
+
+    /** Jaccard similarity of two word sets: 1.0 = same words */
+    public static double similarity(Set<String> a, Set<String> b) {
+        if (a.isEmpty() || b.isEmpty()) return 0;
+        int common = 0;
+        for (String w : a) if (b.contains(w)) common++;
+        return common / (double) (a.size() + b.size() - common);
     }
 
     /** for duplicate detection: lowercase letters+digits only */

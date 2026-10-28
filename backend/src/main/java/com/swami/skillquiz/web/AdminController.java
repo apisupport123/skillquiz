@@ -86,7 +86,7 @@ public class AdminController {
     public ResponseEntity<byte[]> csv(@RequestHeader(value = "X-Admin-Key", required = false) String key) {
         auth(key);
         StringBuilder sb = new StringBuilder("﻿"); // BOM so Excel opens UTF-8 correctly
-        sb.append("Employee ID,Name,Department,Topic,Level,Score,Total,Percentage,Time (min),Submitted (IST)\n");
+        sb.append("Employee ID,Name,Department,Topic,Level,Score,Total,Percentage,Time (min),Submitted (IST),How it ended\n");
         for (Attempt a : attempts.findBySubmittedTrueOrderBySubmittedAtDesc(PageRequest.of(0, 100_000))) {
             sb.append(cell(a.getEmpId())).append(',')
               .append(cell(a.getEmpName())).append(',')
@@ -97,7 +97,8 @@ public class AdminController {
               .append(a.getTotal()).append(',')
               .append(a.getPercentage()).append(',')
               .append(String.format("%.1f", (a.getDurationSeconds() == null ? 0 : a.getDurationSeconds()) / 60.0)).append(',')
-              .append(a.getSubmittedAt() == null ? "" : IST.format(a.getSubmittedAt()))
+              .append(a.getSubmittedAt() == null ? "" : IST.format(a.getSubmittedAt())).append(',')
+              .append(endLabel(a.getEndReason()))
               .append('\n');
         }
         return ResponseEntity.ok()
@@ -148,7 +149,19 @@ public class AdminController {
         return new AdminAttemptRow(a.getId(), a.getEmpId(), a.getEmpName(), a.getDepartment(), a.getTopicLabel(),
                 a.getLevel(), a.getScore() == null ? 0 : a.getScore(), a.getTotal(),
                 a.getPercentage() == null ? 0 : a.getPercentage(),
-                a.getDurationSeconds() == null ? 0 : a.getDurationSeconds(), a.getStartedAt(), a.getSubmittedAt());
+                a.getDurationSeconds() == null ? 0 : a.getDurationSeconds(), a.getStartedAt(), a.getSubmittedAt(),
+                a.getEndReason() == null ? "MANUAL" : a.getEndReason());
+    }
+
+    private static String endLabel(String r) {
+        if (r == null) return "Submitted";
+        return switch (r) {
+            case "TIMEOUT" -> "Time over";
+            case "TAB_SWITCH" -> "Auto-submitted: left exam screen";
+            case "COPY" -> "Auto-submitted: tried to copy";
+            case "CLOSED" -> "Auto-submitted: closed tab";
+            default -> "Submitted";
+        };
     }
 
     /** quote a CSV cell; also neutralise =,+,-,@ so Excel doesn't run formulas from user input */

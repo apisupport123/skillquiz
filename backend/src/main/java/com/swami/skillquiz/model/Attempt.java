@@ -57,6 +57,10 @@ public class Attempt implements Persistable<String> {
     @Column(nullable = false)
     private boolean submitted = false;
 
+    /** MANUAL, TIMEOUT, TAB_SWITCH, COPY, CLOSED */
+    @Column(length = 20)
+    private String endReason;
+
     @OneToMany(mappedBy = "attempt", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("position ASC")
     private List<AttemptItem> items = new ArrayList<>();
@@ -99,6 +103,8 @@ public class Attempt implements Persistable<String> {
     public Integer getDurationSeconds() { return durationSeconds; }
     public void setDurationSeconds(Integer durationSeconds) { this.durationSeconds = durationSeconds; }
     public boolean isSubmitted() { return submitted; }
+    public String getEndReason() { return endReason; }
+    public void setEndReason(String endReason) { this.endReason = endReason; }
     public void setSubmitted(boolean submitted) { this.submitted = submitted; }
     public List<AttemptItem> getItems() { return items; }
 }
