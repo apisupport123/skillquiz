@@ -1,9 +1,10 @@
 package com.swami.skillquiz.model;
 
 public enum Level {
-    BEGINNER("basic concepts, syntax and common usage that someone with under 1 year experience should know"),
-    INTERMEDIATE("practical, real-project scenarios, best practices, common pitfalls and debugging, for 2-5 years experience"),
-    ADVANCED("internals, performance, architecture, edge cases and tricky behaviour, for senior engineers");
+    // Shown in the app as Easy / Medium / Hard
+    BEGINNER("easy: core facts, definitions and basic concepts a beginner should know"),
+    INTERMEDIATE("medium: typical exam-level questions that need understanding and application, like most real papers"),
+    ADVANCED("hard: tricky, multi-step or analytical questions, like the toughest previous-year questions or expert-level practice");
 
     private final String promptHint;
 

@@ -56,13 +56,14 @@ public class QuizService {
         int perTest = props.questionsPerTest();
 
         String empId = req.empId().trim();
+        String lang = Langs.normalize(req.lang());
 
         // Blocking only when the pool is too small (first person on a new topic waits ~20-40s)
-        pool.ensureAtLeast(key, label, level, Math.max(props.minPoolSize(), perTest));
+        pool.ensureAtLeast(key, label, level, lang, Math.max(props.minPoolSize(), perTest));
 
-        List<Question> all = questions.findByTopicKeyAndLevelAndActiveTrue(key, level);
+        List<Question> all = questions.findByTopicKeyAndLevelAndLangAndActiveTrue(key, level, lang);
         if (all.isEmpty()) {
-            throw new ApiException(503, "Is topic ke questions abhi ready nahi hain. Thodi der baad try karo.");
+            throw new ApiException(503, "NOT_READY", "Questions for this topic are not ready yet. Please try again shortly.");
         }
         Set<Long> seen = new HashSet<>(attempts.seenQuestionIds(empId, key, level));
         List<Question> fresh = new ArrayList<>(all.stream().filter(q -> !seen.contains(q.getId())).toList());
@@ -71,18 +72,18 @@ public class QuizService {
         if (fresh.size() < perTest && all.size() < props.maxPoolSize()) {
             int needed = Math.min(props.maxPoolSize(), all.size() + (perTest - fresh.size()) + 5);
             try {
-                pool.ensureAtLeast(key, label, level, needed);
+                pool.ensureAtLeast(key, label, level, lang, needed);
             } catch (ApiException e) {
                 log.info("Could not grow pool for retake of {} on {}/{}: {}", empId, key, level, e.getMessage());
             }
-            all = questions.findByTopicKeyAndLevelAndActiveTrue(key, level);
+            all = questions.findByTopicKeyAndLevelAndLangAndActiveTrue(key, level, lang);
             fresh = new ArrayList<>(all.stream().filter(q -> !seen.contains(q.getId())).toList());
         }
         if (fresh.size() < perTest) {
             if (!seen.isEmpty()) {
-                throw new ApiException(409, "Aapne '" + label + "' (" + level.name().toLowerCase()
-                        + ") ke lagbhag saare questions de diye hain. Naye questions abhi ban nahi paaye — "
-                        + "koi aur level/topic try karo ya kal dobara.");
+                throw new ApiException(409, "ALL_SEEN",
+                        "You have answered almost every question for " + label + " at this level. New ones could not be made right now; try another level or topic, or come back tomorrow.",
+                        Map.of("topic", label));
             }
             // first attempt but pool smaller than one paper (AI limit hit mid-way): give what we have
         }
@@ -99,6 +100,7 @@ public class QuizService {
         a.setLevel(level);
         a.setTotal(paper.size());
         a.setTimeLimitSeconds(props.timeLimitMinutes() * 60);
+        a.setLang(lang);
         a.setWarnings(0);
         a.setDevice(DeviceInfo.describe(userAgent));
         a.setInstalledApp(Boolean.TRUE.equals(req.installed()));
@@ -118,19 +120,19 @@ public class QuizService {
         int target = props.targetPoolSize();
         if (fresh.size() - perTest < perTest) target = Math.max(target, all.size() + props.batchSize());
         if (all.size() < Math.min(target, props.maxPoolSize())) {
-            refiller.refill(key, label, level, target);
+            refiller.refill(key, label, level, lang, target);
         }
 
         List<PaperQuestion> qs = a.getItems().stream()
                 .map(it -> new PaperQuestion(it.getId(), it.getPosition(), it.getQuestion().getText(), it.displayedOptions()))
                 .toList();
-        return new StartResponse(a.getId(), label, level, props.timeLimitMinutes() * 60, a.getStartedAt(), qs);
+        return new StartResponse(a.getId(), label, level, props.timeLimitMinutes() * 60, a.getStartedAt(), qs, lang);
     }
 
     @Transactional
     public ResultResponse submit(String attemptId, SubmitRequest req) {
         Attempt a = attempts.findById(attemptId)
-                .orElseThrow(() -> new ApiException(404, "Test nahi mila. Page refresh karke dobara start karo."));
+                .orElseThrow(() -> new ApiException(404, "TEST_NOT_FOUND", "This test was not found. Refresh the page and start again."));
         if (a.isSubmitted()) {
             return toResult(a); // double-click / retry / beacon + normal submit: first one wins
         }
@@ -169,8 +171,8 @@ public class QuizService {
     @Transactional(readOnly = true)
     public ResultResponse result(String attemptId) {
         Attempt a = attempts.findById(attemptId)
-                .orElseThrow(() -> new ApiException(404, "Result nahi mila."));
-        if (!a.isSubmitted()) throw new ApiException(409, "Ye test abhi submit nahi hua hai.");
+                .orElseThrow(() -> new ApiException(404, "RESULT_NOT_FOUND", "Result not found."));
+        if (!a.isSubmitted()) throw new ApiException(409, "NOT_SUBMITTED", "This test has not been submitted yet.");
         return toResult(a);
     }
 
@@ -207,7 +209,7 @@ public class QuizService {
             Attempt a = rows.get(i);
             return new LeaderRow(i + 1, a.getEmpId(), a.getEmpName(), a.getDepartment(), a.getTopicLabel(), a.getLevel(),
                     nz(a.getScore()), a.getTotal(), nzd(a.getPercentage()), nz(a.getDurationSeconds()), a.getSubmittedAt(),
-                    wrong(a), skipped(a), a.getStartedAt(), a.getEndReason(), passed(a));
+                    wrong(a), skipped(a), a.getStartedAt(), a.getEndReason(), passed(a), lang(a));
         }).toList();
     }
 
@@ -216,7 +218,7 @@ public class QuizService {
         return attempts.findByEmpIdIgnoreCaseAndSubmittedTrueOrderBySubmittedAtDesc(empId.trim()).stream()
                 .map(a -> new HistoryRow(a.getId(), a.getTopicLabel(), a.getLevel(), nz(a.getScore()), a.getTotal(),
                         nzd(a.getPercentage()), nz(a.getDurationSeconds()), a.getSubmittedAt(),
-                        a.getStartedAt(), wrong(a), skipped(a), a.getEndReason(), passed(a)))
+                        a.getStartedAt(), wrong(a), skipped(a), a.getEndReason(), passed(a), lang(a)))
                 .toList();
     }
 
@@ -244,7 +246,7 @@ public class QuizService {
         return new ResultResponse(a.getId(), a.getEmpId(), a.getEmpName(), a.getDepartment(), a.getTopicLabel(),
                 a.getLevel(), nz(a.getScore()), a.getTotal(), nzd(a.getPercentage()), nz(a.getDurationSeconds()),
                 a.getSubmittedAt(), rank[0], rank[1], a.getEndReason(), review,
-                a.getStartedAt(), wrong(a), skipped(a), passed(a), props.passPercent());
+                a.getStartedAt(), wrong(a), skipped(a), passed(a), props.passPercent(), lang(a));
     }
 
     /** [rank, outOf] among everyone who took the same topic+level */
@@ -268,7 +270,7 @@ public class QuizService {
 
     @Transactional(readOnly = true)
     public AdminAttemptDetail adminDetail(String attemptId) {
-        Attempt a = attempts.findById(attemptId).orElseThrow(() -> new ApiException(404, "Test nahi mila."));
+        Attempt a = attempts.findById(attemptId).orElseThrow(() -> new ApiException(404, "TEST_NOT_FOUND", "This test was not found."));
         List<AdminReviewItem> review = a.getItems().stream().map(it -> new AdminReviewItem(
                 it.getPosition(), it.getQuestion().getText(), it.displayedOptions(), it.getSelectedDisplayIndex(),
                 it.correctDisplayIndex(), Boolean.TRUE.equals(it.getCorrect()), it.getQuestion().getExplanation(),
@@ -282,7 +284,7 @@ public class QuizService {
                 a.getLevel(), nz(a.getScore()), a.getTotal(), nzd(a.getPercentage()), nz(a.getDurationSeconds()),
                 a.getStartedAt(), a.getSubmittedAt(), a.isSubmitted() ? (a.getEndReason() == null ? "MANUAL" : a.getEndReason()) : null,
                 status(a), nz(a.getAnsweredCount()), wrong(a), a.isSubmitted() ? skipped(a) : 0, passed(a),
-                timeLimit(a), nz(a.getWarnings()), a.getDevice(), a.getInstalledApp());
+                timeLimit(a), nz(a.getWarnings()), a.getDevice(), a.getInstalledApp(), lang(a));
     }
 
     /** SUBMITTED, IN_PROGRESS, or ABANDONED (time limit + 2 min passed and never submitted) */
@@ -290,6 +292,10 @@ public class QuizService {
         if (a.isSubmitted()) return "SUBMITTED";
         Instant giveUp = a.getStartedAt().plusSeconds(timeLimit(a) + 120L);
         return Instant.now().isAfter(giveUp) ? "ABANDONED" : "IN_PROGRESS";
+    }
+
+    private static String lang(Attempt a) {
+        return a.getLang() == null ? "en" : a.getLang();
     }
 
     private int timeLimit(Attempt a) {

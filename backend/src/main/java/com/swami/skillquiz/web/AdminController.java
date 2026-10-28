@@ -7,6 +7,7 @@ import com.swami.skillquiz.model.Question;
 import com.swami.skillquiz.repo.AttemptRepository;
 import com.swami.skillquiz.repo.QuestionRepository;
 import com.swami.skillquiz.service.ApiException;
+import com.swami.skillquiz.service.Langs;
 import com.swami.skillquiz.service.QuestionPoolService;
 import com.swami.skillquiz.service.QuizService;
 import com.swami.skillquiz.service.Topics;
@@ -71,7 +72,7 @@ public class AdminController {
                     cutoff = java.time.LocalDate.parse(before == null ? "" : before)
                             .atStartOfDay(ZoneId.of("Asia/Kolkata")).toInstant();
                 } catch (java.time.format.DateTimeParseException e) {
-                    throw new ApiException(400, "Date sahi format mein do (YYYY-MM-DD).");
+                    throw new ApiException(400, "BAD_DATE", "Give the date as YYYY-MM-DD.");
                 }
                 count = attempts.countByStartedAtBefore(cutoff);
                 if (!dryRun && count > 0) {
@@ -81,7 +82,7 @@ public class AdminController {
             }
             case "employee" -> {
                 String id = empId == null ? "" : empId.trim();
-                if (id.isEmpty()) throw new ApiException(400, "Employee ID daalo.");
+                if (id.isEmpty()) throw new ApiException(400, "ID_REQUIRED", "Enter an ID.");
                 count = attempts.countByEmpIdIgnoreCase(id);
                 if (!dryRun && count > 0) {
                     attempts.deleteItemsOfEmployee(id);
@@ -95,7 +96,7 @@ public class AdminController {
                     attempts.deleteAllAttempts();
                 }
             }
-            default -> throw new ApiException(400, "scope must be before, employee or all");
+            default -> throw new ApiException(400, "BAD_REQUEST", "scope must be before, employee or all");
         }
         return Map.of("count", count, "deleted", !dryRun);
     }
@@ -106,17 +107,19 @@ public class AdminController {
      */
     @PostMapping("/prepare")
     public Map<String, Object> prepare(@RequestHeader(value = "X-Admin-Key", required = false) String key,
-                                       @RequestParam String topic, @RequestParam Level level) {
+                                       @RequestParam String topic, @RequestParam Level level,
+                                       @RequestParam(defaultValue = "en") String lang) {
         auth(key);
         String cleaned = Topics.clean(topic);
         String k = Topics.key(cleaned);
         String label = Topics.label(cleaned);
-        long before = pool.size(k, level);
-        pool.ensureAtLeast(k, label, level, Math.max(props.minPoolSize(), props.questionsPerTest()));
+        String l = Langs.normalize(lang);
+        long before = pool.size(k, level, l);
+        pool.ensureAtLeast(k, label, level, l, Math.max(props.minPoolSize(), props.questionsPerTest()));
         // one extra round toward the target size for more variety
-        pool.topUp(k, label, level, props.targetPoolSize());
-        long after = pool.size(k, level);
-        return Map.of("topic", label, "level", level, "before", before, "after", after);
+        pool.topUp(k, label, level, l, props.targetPoolSize());
+        long after = pool.size(k, level, l);
+        return Map.of("topic", label, "level", level, "lang", l, "before", before, "after", after);
     }
 
     @GetMapping("/check")
@@ -147,7 +150,7 @@ public class AdminController {
     public ResponseEntity<byte[]> csv(@RequestHeader(value = "X-Admin-Key", required = false) String key) {
         auth(key);
         StringBuilder sb = new StringBuilder("\uFEFF"); // BOM so Excel opens UTF-8 correctly
-        sb.append("Employee ID,Name,Team,Topic,Level,Status,Score,Total,Correct,Wrong,Skipped,Percentage,Result,")
+        sb.append("ID,Name,Team,Topic,Language,Level,Status,Score,Total,Correct,Wrong,Skipped,Percentage,Result,")
           .append("Started (IST),Finished (IST),Time taken (min),Time limit (min),How it ended,Warnings,Device,Opened from,Attempt ID\n");
         for (Attempt a : attempts.findAllByOrderByStartedAtDesc(PageRequest.of(0, 100_000))) {
             AdminAttemptRow r = quiz.adminRow(a);
@@ -156,7 +159,8 @@ public class AdminController {
               .append(cell(r.empName())).append(',')
               .append(cell(r.department())).append(',')
               .append(cell(r.topic())).append(',')
-              .append(r.level()).append(',')
+              .append(Langs.of(r.lang()).english()).append(',')
+              .append(levelLabel(r.level())).append(',')
               .append(statusLabel(r.status())).append(',')
               .append(done ? String.valueOf(r.score()) : "").append(',')
               .append(r.total()).append(',')
@@ -182,6 +186,14 @@ public class AdminController {
                 .body(sb.toString().getBytes(StandardCharsets.UTF_8));
     }
 
+    private static String levelLabel(Level l) {
+        return switch (l) {
+            case BEGINNER -> "Easy";
+            case INTERMEDIATE -> "Medium";
+            case ADVANCED -> "Hard";
+        };
+    }
+
     private static String statusLabel(String s) {
         return switch (s) {
             case "SUBMITTED" -> "Submitted";
@@ -194,13 +206,17 @@ public class AdminController {
     @GetMapping("/questions")
     public List<AdminQuestionRow> questions(@RequestHeader(value = "X-Admin-Key", required = false) String key,
                                             @RequestParam String topic,
-                                            @RequestParam(required = false) Level level) {
+                                            @RequestParam(required = false) Level level,
+                                            @RequestParam(required = false) String lang) {
         auth(key);
         String k = Topics.key(Topics.clean(topic));
+        String l = lang == null || lang.isBlank() ? null : Langs.normalize(lang);
         return questions.findByTopicKeyOrderByIdDesc(k).stream()
                 .filter(q -> level == null || q.getLevel() == level)
+                .filter(q -> l == null || l.equals(q.getLang() == null ? "en" : q.getLang()))
                 .map(q -> new AdminQuestionRow(q.getId(), q.getTopicKey(), q.getLevel(), q.getText(), q.options(),
-                        q.getCorrectIndex(), q.getExplanation(), q.isActive(), q.getCreatedAt()))
+                        q.getCorrectIndex(), q.getExplanation(), q.isActive(), q.getCreatedAt(),
+                        q.getLang() == null ? "en" : q.getLang()))
                 .toList();
     }
 
@@ -208,7 +224,7 @@ public class AdminController {
     public String toggle(@RequestHeader(value = "X-Admin-Key", required = false) String key,
                          @PathVariable long id, @RequestParam boolean active) {
         auth(key);
-        Question q = questions.findById(id).orElseThrow(() -> new ApiException(404, "Question nahi mila"));
+        Question q = questions.findById(id).orElseThrow(() -> new ApiException(404, "QUESTION_NOT_FOUND", "Question not found."));
         q.setActive(active);
         questions.save(q);
         return "ok";
@@ -219,12 +235,12 @@ public class AdminController {
     private void auth(String key) {
         String expected = props.adminKey();
         if (expected == null || expected.isBlank()) {
-            throw new ApiException(403, "Admin disabled hai. Server pe ADMIN_KEY set karo.");
+            throw new ApiException(403, "ADMIN_DISABLED", "Admin is turned off. Set ADMIN_KEY on the server.");
         }
         byte[] a = expected.getBytes(StandardCharsets.UTF_8);
         byte[] b = (key == null ? "" : key).getBytes(StandardCharsets.UTF_8);
         if (!MessageDigest.isEqual(a, b)) {
-            throw new ApiException(401, "Admin password galat hai.");
+            throw new ApiException(401, "ADMIN_WRONG", "Wrong admin password.");
         }
     }
 

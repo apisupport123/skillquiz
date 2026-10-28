@@ -12,8 +12,8 @@ public final class Topics {
 
     private Topics() {}
 
-    /** letters, digits, spaces and a few symbols used in tech names (C#, C++, .NET, CI/CD, Node.js) */
-    private static final Pattern ALLOWED = Pattern.compile("^[\\p{L}\\p{N} .#+/&()-]{1,40}$");
+    /** letters (any script, incl. Hindi/Marathi vowel signs), digits, spaces and a few symbols (C#, C++, CI/CD, Class 10) */
+    private static final Pattern ALLOWED = Pattern.compile("^[\\p{L}\\p{M}\\p{N} .#+/&()',:-]{1,60}$");
 
     private static final Map<String, String> ALIASES = Map.ofEntries(
             Map.entry("js", "javascript"),
@@ -55,13 +55,23 @@ public final class Topics {
             Map.entry("cicd", "ci cd"),
             Map.entry("dsa", "data structures and algorithms"),
             Map.entry("oops", "object oriented programming"),
+            Map.entry("gk", "general knowledge"),
+            Map.entry("ga", "general awareness"),
+            Map.entry("maths", "mathematics"),
+            Map.entry("math", "mathematics"),
+            Map.entry("reasoning", "logical reasoning"),
+            Map.entry("evs", "environmental studies"),
+            Map.entry("ias", "upsc civil services"),
+            Map.entry("upsc cse", "upsc civil services"),
+            Map.entry("mpsc rajyaseva", "mpsc rajyaseva"),
             Map.entry("oop", "object oriented programming"));
 
     public static String clean(String input) {
-        if (input == null) throw new ApiException(400, "Topic daalo (jaise Java, Python, GenAI).");
+        if (input == null) throw new ApiException(400, "TOPIC_REQUIRED", "Enter an exam, subject or topic.");
         String t = input.trim().replaceAll("\\s+", " ");
-        if (t.length() < 1 || !ALLOWED.matcher(t).matches()) {
-            throw new ApiException(400, "Topic mein sirf letters/numbers (aur . # + / -) allowed hain, max 40 characters.");
+        if (t.isEmpty()) throw new ApiException(400, "TOPIC_REQUIRED", "Enter an exam, subject or topic.");
+        if (!ALLOWED.matcher(t).matches()) {
+            throw new ApiException(400, "TOPIC_CHARS", "Use letters and numbers only (and . # + / - ( ) &), up to 60 characters.");
         }
         return t;
     }
@@ -74,7 +84,11 @@ public final class Topics {
     private static final java.util.Set<String> ACRONYMS = java.util.Set.of(
             "php", "sql", "aws", "html", "css", "xml", "api", "apis", "gcp", "nlp", "ml", "ai", "ios",
             "sap", "jsp", "etl", "ui", "ux", "qa", "seo", "iot", "rpa", "jvm", "rest", "json", "ci",
-            "cd", "sre", "erp", "crm", "bi", "it", "hr", ".net", "mvc", "orm", "jpa", "dbms", "os");
+            "cd", "sre", "erp", "crm", "bi", "it", "hr", ".net", "mvc", "orm", "jpa", "dbms", "os",
+            "upsc", "mpsc", "uppsc", "bpsc", "rpsc", "mppsc", "tnpsc", "kpsc", "appsc", "tspsc", "gpsc", "wbcs",
+            "ssc", "cgl", "chsl", "mts", "gd", "ibps", "sbi", "po", "rrb", "ntpc", "nda", "cds", "afcat", "capf",
+            "tgt", "pgt", "prt", "ctet", "tet", "htet", "reet", "neet", "jee", "cuet", "gate", "cat", "mat",
+            "clat", "net", "ugc", "csir", "cbse", "icse", "hsc", "ias", "ips", "gk", "evs", "lic", "aao");
 
     /**
      * Nice display label. If the user typed capitals ("GenAI"), keep it.
@@ -89,6 +103,7 @@ public final class Topics {
             if (sb.length() > 0) sb.append(' ');
             if (ACRONYMS.contains(w)) sb.append(w.toUpperCase());
             else if (w.equals("and") || w.equals("of")) sb.append(w);
+            else if (w.isEmpty()) continue;
             else sb.append(Character.toUpperCase(w.charAt(0))).append(w.substring(1));
         }
         return sb.toString();
@@ -102,7 +117,7 @@ public final class Topics {
     /** meaningful lowercase words of a question, for near-duplicate checks */
     public static Set<String> words(String text) {
         Set<String> out = new java.util.HashSet<>();
-        for (String w : text.toLowerCase().split("[^\\p{L}\\p{N}#+.]+")) {
+        for (String w : text.toLowerCase().split("[^\\p{L}\\p{M}\\p{N}#+.]+")) {
             if (w.length() > 1 && !STOP.contains(w)) out.add(w);
         }
         return out;
@@ -118,7 +133,7 @@ public final class Topics {
 
     /** for duplicate detection: lowercase letters+digits only */
     public static String fingerprint(String questionText) {
-        String f = questionText.toLowerCase().replaceAll("[^\\p{L}\\p{N}]", "");
+        String f = questionText.toLowerCase().replaceAll("[^\\p{L}\\p{M}\\p{N}]", "");
         return f.length() > 300 ? f.substring(0, 300) : f;
     }
 }

@@ -10,19 +10,24 @@ import java.util.List;
 
 public interface QuestionRepository extends JpaRepository<Question, Long> {
 
-    List<Question> findByTopicKeyAndLevelAndActiveTrue(String topicKey, Level level);
+    List<Question> findByTopicKeyAndLevelAndLangAndActiveTrue(String topicKey, Level level, String lang);
 
-    long countByTopicKeyAndLevelAndActiveTrue(String topicKey, Level level);
+    long countByTopicKeyAndLevelAndLangAndActiveTrue(String topicKey, Level level, String lang);
 
     List<Question> findByTopicKeyOrderByIdDesc(String topicKey);
 
-    @Query("select q.fingerprint from Question q where q.topicKey = :topicKey and q.level = :level")
-    List<String> fingerprints(@Param("topicKey") String topicKey, @Param("level") Level level);
+    @Query("select q.fingerprint from Question q where q.topicKey = :topicKey and q.level = :level and q.lang = :lang")
+    List<String> fingerprints(@Param("topicKey") String topicKey, @Param("level") Level level, @Param("lang") String lang);
 
-    @Query("select q.text from Question q where q.topicKey = :topicKey and q.level = :level")
-    List<String> allTexts(@Param("topicKey") String topicKey, @Param("level") Level level);
+    @Query("select q.text from Question q where q.topicKey = :topicKey and q.level = :level and q.lang = :lang")
+    List<String> allTexts(@Param("topicKey") String topicKey, @Param("level") Level level, @Param("lang") String lang);
 
-    @Query("select q.text from Question q where q.topicKey = :topicKey and q.level = :level order by q.id desc")
-    List<String> recentTexts(@Param("topicKey") String topicKey, @Param("level") Level level,
+    @Query("select q.text from Question q where q.topicKey = :topicKey and q.level = :level and q.lang = :lang order by q.id desc")
+    List<String> recentTexts(@Param("topicKey") String topicKey, @Param("level") Level level, @Param("lang") String lang,
                              org.springframework.data.domain.Pageable page);
+
+    /** rows created before languages existed are English */
+    @org.springframework.data.jpa.repository.Modifying
+    @Query("update Question q set q.lang = 'en' where q.lang is null")
+    int backfillLang();
 }

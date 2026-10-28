@@ -15,7 +15,7 @@ public class PoolRefiller {
     }
 
     @Async
-    public void refill(String topicKey, String topicLabel, Level level, int target) {
-        pool.topUp(topicKey, topicLabel, level, target);
+    public void refill(String topicKey, String topicLabel, Level level, String lang, int target) {
+        pool.topUp(topicKey, topicLabel, level, lang, target);
     }
 }

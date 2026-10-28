@@ -7,7 +7,8 @@ import java.util.List;
 /** Something that can invent MCQs for any topic. Real one = Gemini, test one = Demo. */
 public interface QuestionGenerator {
 
-    Result generate(String topicLabel, Level level, int count, List<String> avoidQuestions);
+    /** lang = language code from Langs (en, hi, mr, ...) */
+    Result generate(String topicLabel, Level level, String lang, int count, List<String> avoidQuestions);
 
     record Generated(String question, List<String> options, int correctIndex, String explanation) {}
 

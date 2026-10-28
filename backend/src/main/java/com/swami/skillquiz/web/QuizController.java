@@ -63,7 +63,7 @@ public class QuizController {
         try {
             req = mapper.readValue(body, SubmitRequest.class);
         } catch (Exception e) {
-            throw new ApiException(400, "Request sahi format mein nahi hai.");
+            throw new ApiException(400, "BAD_REQUEST", "The request was not in the right format.");
         }
         quiz.submit(attemptId, new SubmitRequest(req.answers() == null ? Map.of() : req.answers(),
                 req.reason() == null ? "CLOSED" : req.reason(), req.timings(), req.changes(), req.warnings()));

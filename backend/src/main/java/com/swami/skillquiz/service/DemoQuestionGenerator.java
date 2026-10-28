@@ -17,7 +17,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class DemoQuestionGenerator implements QuestionGenerator {
 
     @Override
-    public Result generate(String topicLabel, Level level, int count, List<String> avoid) {
+    public Result generate(String topicLabel, Level level, String lang, int count, List<String> avoid) {
         if (topicLabel.toLowerCase().contains("asdf")) {
             return new Result(false, "Not a real technology", List.of());
         }
@@ -26,7 +26,7 @@ public class DemoQuestionGenerator implements QuestionGenerator {
         for (int i = 0; i < count; i++) {
             int n = seed + i;
             list.add(new Generated(
-                    "[DEMO] " + topicLabel + " (" + level + ") question #" + n + ": which statement is correct?",
+                    "[DEMO " + lang + "] " + topicLabel + " (" + level + ") question #" + n + ": which statement is correct?",
                     List.of("Correct statement " + n, "Wrong statement A" + n, "Wrong statement B" + n, "Wrong statement C" + n),
                     0,
                     "Demo explanation for question #" + n));

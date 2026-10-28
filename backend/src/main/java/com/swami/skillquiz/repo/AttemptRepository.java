@@ -52,6 +52,11 @@ public interface AttemptRepository extends JpaRepository<Attempt, String>, JpaSp
 
     long countBySubmittedTrue();
 
+    /** rows created before languages existed are English */
+    @Modifying
+    @Query("update Attempt a set a.lang = 'en' where a.lang is null")
+    int backfillLang();
+
     // ---------- admin delete (answers first, then the attempts) ----------
 
     long countByStartedAtBefore(Instant before);

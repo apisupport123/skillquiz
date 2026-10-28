@@ -38,40 +38,40 @@ public class QuestionPoolService {
         this.props = props;
     }
 
-    public long size(String topicKey, Level level) {
-        return questions.countByTopicKeyAndLevelAndActiveTrue(topicKey, level);
+    public long size(String topicKey, Level level, String lang) {
+        return questions.countByTopicKeyAndLevelAndLangAndActiveTrue(topicKey, level, lang);
     }
 
     /**
      * Blocking: make sure the pool has at least {@code needed} questions.
      * Called on the request path when a topic is brand new.
      */
-    public void ensureAtLeast(String topicKey, String topicLabel, Level level, int needed) {
-        if (size(topicKey, level) >= needed) return;
+    public void ensureAtLeast(String topicKey, String topicLabel, Level level, String lang, int needed) {
+        if (size(topicKey, level, lang) >= needed) return;
 
-        ReentrantLock lock = lockFor(topicKey, level);
+        ReentrantLock lock = lockFor(topicKey, level, lang);
         boolean got;
         try {
             got = lock.tryLock(170, TimeUnit.SECONDS); // someone else may be generating this topic
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new ApiException(503, "Request cancel ho gayi, dobara try karo.");
+            throw new ApiException(503, "CANCELLED", "The request was cancelled. Please try again.");
         }
-        if (!got) throw new ApiException(503, "Paper abhi ban raha hai, 1 minute baad try karo.");
+        if (!got) throw new ApiException(503, "PAPER_BUILDING", "Your paper is still being prepared. Try again in a minute.");
         try {
             int rounds = 0;
-            int maxRounds = Math.min(4, 1 + (int) Math.ceil((needed - size(topicKey, level)) / (double) props.batchSize()));
-            while (size(topicKey, level) < needed && rounds++ < maxRounds) {
+            int maxRounds = Math.min(4, 1 + (int) Math.ceil((needed - size(topicKey, level, lang)) / (double) props.batchSize()));
+            while (size(topicKey, level, lang) < needed && rounds++ < maxRounds) {
                 if (!limiter.tryAcquire()) {
-                    if (size(topicKey, level) >= props.questionsPerTest()) return; // good enough for now
-                    throw new ApiException(429, "Bahut log ek saath naya topic shuru kar rahe hain. Thodi der mein apne aap dobara try hoga.");
+                    if (size(topicKey, level, lang) >= props.questionsPerTest()) return; // good enough for now
+                    throw new ApiException(429, "BUSY", "Many people are starting new topics right now. Trying again shortly.");
                 }
                 try {
-                    int added = generateBatch(topicKey, topicLabel, level);
-                    if (added == 0 && size(topicKey, level) >= props.questionsPerTest()) return;
+                    int added = generateBatch(topicKey, topicLabel, level, lang);
+                    if (added == 0 && size(topicKey, level, lang) >= props.questionsPerTest()) return;
                 } catch (ApiException e) {
                     // AI failed (limit / outage). If we already have one full paper, still let the employee start.
-                    if (e.status() != 422 && size(topicKey, level) >= props.questionsPerTest()) {
+                    if (e.status() != 422 && size(topicKey, level, lang) >= props.questionsPerTest()) {
                         log.info("AI unavailable for {}/{} ({}), serving existing pool", topicKey, level, e.getMessage());
                         return;
                     }
@@ -84,14 +84,14 @@ public class QuestionPoolService {
     }
 
     /** Non-blocking top-up used in the background. Skips if someone is already generating. */
-    public void topUp(String topicKey, String topicLabel, Level level, int target) {
-        ReentrantLock lock = lockFor(topicKey, level);
+    public void topUp(String topicKey, String topicLabel, Level level, String lang, int target) {
+        ReentrantLock lock = lockFor(topicKey, level, lang);
         if (!lock.tryLock()) return;
         try {
             int cap = Math.min(target, props.maxPoolSize());
             // one AI call per trigger: the free daily quota is better spent on NEW topics
-            if (size(topicKey, level) < cap && limiter.tryAcquire()) {
-                generateBatch(topicKey, topicLabel, level);
+            if (size(topicKey, level, lang) < cap && limiter.tryAcquire()) {
+                generateBatch(topicKey, topicLabel, level, lang);
             }
         } catch (ApiException e) {
             log.info("Background top-up for {}/{} stopped: {}", topicKey, level, e.getMessage());
@@ -101,25 +101,25 @@ public class QuestionPoolService {
     }
 
     /** @return number of NEW questions saved */
-    private int generateBatch(String topicKey, String topicLabel, Level level) {
-        List<String> avoid = questions.recentTexts(topicKey, level, PageRequest.of(0, 80));
-        log.info("Generating {} questions for '{}' [{}], pool={}", props.batchSize(), topicKey, level, size(topicKey, level));
+    private int generateBatch(String topicKey, String topicLabel, Level level, String lang) {
+        List<String> avoid = questions.recentTexts(topicKey, level, lang, PageRequest.of(0, 80));
+        log.info("Generating {} questions for '{}' [{}] in {}, pool={}", props.batchSize(), topicKey, level, lang, size(topicKey, level, lang));
 
-        QuestionGenerator.Result result = generator.generate(topicLabel, level, props.batchSize(), avoid);
+        QuestionGenerator.Result result = generator.generate(topicLabel, level, lang, props.batchSize(), avoid);
         if (!result.validTopic()) {
-            String why = result.reason() == null || result.reason().isBlank() ? "" : " (" + result.reason() + ")";
-            throw new ApiException(422, "'" + topicLabel + "' ek valid technology/skill nahi lag raha" + why
-                    + ". Koi aur topic try karo, jaise Java, Python, GenAI, PHP.");
+            throw new ApiException(422, "TOPIC_INVALID",
+                "'" + topicLabel + "' does not look like an exam, subject or skill. Try another, like UPSC, MPSC, Maths or Java.",
+                java.util.Map.of("topic", topicLabel));
         }
 
-        Set<String> seen = new HashSet<>(questions.fingerprints(topicKey, level));
+        Set<String> seen = new HashSet<>(questions.fingerprints(topicKey, level, lang));
         // word sets of every existing question, to catch the same question re-worded
         List<Set<String>> existingWords = new ArrayList<>();
-        for (String t : questions.allTexts(topicKey, level)) existingWords.add(Topics.words(t));
+        for (String t : questions.allTexts(topicKey, level, lang)) existingWords.add(Topics.words(t));
         List<Question> fresh = new ArrayList<>();
         int nearDupes = 0;
         for (QuestionGenerator.Generated g : result.questions()) {
-            Question q = toEntity(g, topicKey, level);
+            Question q = toEntity(g, topicKey, level, lang);
             if (q == null || !seen.add(q.getFingerprint())) continue;
             Set<String> w = Topics.words(q.getText());
             if (existingWords.stream().anyMatch(e -> Topics.similarity(e, w) >= 0.7)) { nearDupes++; continue; }
@@ -133,7 +133,7 @@ public class QuestionPoolService {
     }
 
     /** Validates one AI question; returns null if it is broken. */
-    private Question toEntity(QuestionGenerator.Generated g, String topicKey, Level level) {
+    private Question toEntity(QuestionGenerator.Generated g, String topicKey, Level level, String lang) {
         if (g.question() == null || g.question().isBlank() || g.question().length() > 1000) return null;
         List<String> opts = g.options();
         if (opts == null || opts.size() != 4) return null;
@@ -148,6 +148,7 @@ public class QuestionPoolService {
         Question q = new Question();
         q.setTopicKey(topicKey);
         q.setLevel(level);
+        q.setLang(lang);
         q.setText(g.question().trim());
         q.setOptionA(opts.get(0).trim());
         q.setOptionB(opts.get(1).trim());
@@ -160,7 +161,7 @@ public class QuestionPoolService {
         return q;
     }
 
-    private ReentrantLock lockFor(String topicKey, Level level) {
-        return locks.computeIfAbsent(topicKey + "|" + level, k -> new ReentrantLock());
+    private ReentrantLock lockFor(String topicKey, Level level, String lang) {
+        return locks.computeIfAbsent(topicKey + "|" + level + "|" + lang, k -> new ReentrantLock());
     }
 }

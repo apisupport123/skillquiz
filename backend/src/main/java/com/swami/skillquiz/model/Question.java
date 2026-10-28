@@ -11,7 +11,7 @@ import java.util.List;
  */
 @Entity
 @Table(name = "questions",
-        indexes = @Index(name = "idx_q_topic_level", columnList = "topic_key,quiz_level,active"))
+        indexes = @Index(name = "idx_q_topic_level_lang", columnList = "topic_key,quiz_level,lang,active"))
 public class Question {
 
     @Id
@@ -25,6 +25,10 @@ public class Question {
     @Enumerated(EnumType.STRING)
     @Column(name = "quiz_level", nullable = false, length = 20)
     private Level level;
+
+    /** language code of the text: en, hi, mr, ... (see Langs) */
+    @Column(length = 5)
+    private String lang = "en";
 
     @Column(name = "question_text", nullable = false, length = 1000)
     private String text;
@@ -61,6 +65,8 @@ public class Question {
     public String getTopicKey() { return topicKey; }
     public void setTopicKey(String topicKey) { this.topicKey = topicKey; }
     public Level getLevel() { return level; }
+    public String getLang() { return lang; }
+    public void setLang(String lang) { this.lang = lang; }
     public void setLevel(Level level) { this.level = level; }
     public String getText() { return text; }
     public void setText(String text) { this.text = text; }

@@ -77,6 +77,10 @@ public class Attempt implements Persistable<String> {
     @Column(length = 400)
     private String userAgent;
 
+    /** language the questions were in */
+    @Column(length = 5)
+    private String lang = "en";
+
     @OneToMany(mappedBy = "attempt", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("position ASC")
     private List<AttemptItem> items = new ArrayList<>();
@@ -135,6 +139,8 @@ public class Attempt implements Persistable<String> {
     public Boolean getInstalledApp() { return installedApp; }
     public void setInstalledApp(Boolean v) { this.installedApp = v; }
     public String getUserAgent() { return userAgent; }
+    public String getLang() { return lang; }
+    public void setLang(String lang) { this.lang = lang; }
     public void setUserAgent(String v) { this.userAgent = v; }
     public void setEndReason(String endReason) { this.endReason = endReason; }
     public void setSubmitted(boolean submitted) { this.submitted = submitted; }
