@@ -11,11 +11,12 @@
 <meta name="apple-mobile-web-app-title" content="SkillQuiz">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>SkillQuiz</title>
-<meta name="description" content="Type any technology and get your own AI-written test paper.">
+<meta name="description" content="Practice tests for UPSC, MPSC, SSC, banking, TGT, school subjects and technology. AI writes a different paper for every person, in your language.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%23D23F73' stroke-width='3'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%23121A33'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=Mukta:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="i18n.js"></script>
 <script src="config.js"></script>
 <style>
 :root {
@@ -37,8 +38,8 @@
   --glass: rgba(242, 244, 249, .82);
   --shadow: 0 1px 2px rgba(18, 26, 51, .05), 0 6px 20px rgba(18, 26, 51, .07);
   --shadow-up: 0 -6px 24px rgba(18, 26, 51, .08);
-  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
-  --body: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  --display: "Bricolage Grotesque", "Mukta", "Noto Sans", "Segoe UI", system-ui, sans-serif;
+  --body: "Instrument Sans", "Mukta", "Noto Sans", "Segoe UI", system-ui, sans-serif;
   --r-sm: 10px;
   --r: 16px;
   --r-lg: 24px;
@@ -117,7 +118,7 @@ button { cursor: pointer; }
 .ai-row .top { display: flex; justify-content: space-between; gap: 8px; }
 .ai-row .bar { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; margin-top: 6px; }
 .ai-row .bar span { display: block; height: 100%; background: var(--ink); }
-.ai-row.active .top b::after { content: "in use"; margin-left: 8px; font: 600 .7rem var(--body); color: var(--good); background: var(--good-soft); padding: 1px 7px; border-radius: 999px; }
+.ai-row.active .top b::after { content: attr(data-inuse); margin-left: 8px; font: 600 .7rem var(--body); color: var(--good); background: var(--good-soft); padding: 1px 7px; border-radius: 999px; }
 .server-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--warn); flex: none; }
 .server-dot.ok { background: var(--good); }
 .server-dot.down { background: var(--accent); }
@@ -183,7 +184,7 @@ main { max-width: 1120px; margin: 0 auto; padding: 0 16px 32px; }
 
 /* ================= HOME ================= */
 .hero { padding: 26px 0 8px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; }
-.hero h1 { font-size: clamp(2.1rem, 9vw, 4.1rem); font-weight: 800; max-width: 13ch; }
+.hero h1 { font-size: clamp(2rem, 8.6vw, 4rem); font-weight: 800; max-width: 14ch; }
 .hero .lede { font-size: 1.05rem; color: var(--ink-2); max-width: 44ch; margin: 12px 0 20px; }
 .topic-box {
   display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1.5px solid var(--line);
@@ -192,7 +193,7 @@ main { max-width: 1120px; margin: 0 auto; padding: 0 16px 32px; }
 .topic-box:focus-within { border-color: var(--ink); box-shadow: 0 0 0 4px color-mix(in srgb, var(--focus) 18%, transparent), var(--shadow); }
 .topic-box input { border: 0; outline: 0; background: none; flex: 1; min-width: 0; font: 600 1.15rem var(--display); padding: 10px 10px 10px 12px; }
 .topic-box .btn { min-height: 46px; padding: 10px 18px; }
-.chips { display: flex; gap: 8px; margin: 14px -16px 0; padding: 2px 16px 6px; overflow-x: auto; scrollbar-width: none; max-width: 592px; }
+.chips { display: flex; gap: 8px; margin: 10px -16px 0; padding: 2px 16px 6px; overflow-x: auto; scrollbar-width: none; max-width: 592px; }
 .chips::-webkit-scrollbar { display: none; }
 .chip {
   flex: none; border: 1.5px solid var(--line); background: var(--surface); border-radius: 999px; padding: 7px 14px; font-size: .9rem; font-weight: 500;
@@ -202,7 +203,7 @@ main { max-width: 1120px; margin: 0 auto; padding: 0 16px 32px; }
 .facts { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
 .fact { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 10px 14px; }
 .fact b { font: 800 1.35rem var(--display); }
-.fact span { font-size: .82rem; color: var(--ink-2); line-height: 1.2; }
+.fact span { font-size: .82rem; color: var(--ink-2); line-height: 1.2; white-space: pre-line; }
 
 .omr-demo { padding: 20px; display: none; }
 .omr-demo header { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px solid var(--accent); padding-bottom: 10px; margin-bottom: 10px; color: var(--accent); }
@@ -434,6 +435,7 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
 .toggle { align-self: end; min-height: 48px; align-items: center; font-weight: 500; }
 .li .meta { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: .78rem; color: var(--ink-2); margin-top: 5px; }
 .li .meta span { white-space: nowrap; }
+.li .meta span.rng { white-space: normal; }
 .li .meta .c { color: var(--good); font-weight: 600; }
 .li .meta .w { color: var(--accent); font-weight: 600; }
 .li .tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
@@ -457,9 +459,41 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
 .at-q .txt { font-weight: 600; font-size: .94rem; }
 .at-q .ans { font-size: .86rem; }
 .ua { font-size: .74rem; color: var(--ink-3); overflow-wrap: anywhere; margin: 8px 0 0; }
-@media (min-width: 900px) { .admin-filters { grid-template-columns: 2fr 1fr 1fr 1fr 1fr; } .admin-filters .wide-f { grid-column: auto; } }
+@media (min-width: 900px) { .admin-filters { grid-template-columns: 2fr repeat(5, minmax(0, 1fr)); } .q-filters { grid-template-columns: 2fr 1fr 1fr auto; } .admin-filters .wide-f { grid-column: auto; } }
+
+/* language */
+.lang-btn {
+  display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--line); background: var(--surface);
+  border-radius: 999px; padding: 5px 10px 5px 8px; font: 700 .8rem var(--body); color: var(--ink); min-height: 32px;
+}
+.lang-btn svg { width: 16px; height: 16px; color: var(--accent); }
+.lang-opts { display: grid; gap: 10px; margin-top: 18px; }
+.lang-opt {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 16px 18px; min-height: 60px;
+  border: 1.5px solid var(--line); border-radius: 16px; background: var(--surface); font: 700 1.2rem var(--display); text-align: left;
+}
+.lang-opt small { font: 500 .82rem var(--body); color: var(--ink-3); }
+.lang-opt:hover { border-color: var(--ink); }
+.lang-opt[aria-pressed="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); background: var(--surface-2); }
+.lang-opt[aria-pressed="true"]::after { content: "✓"; color: var(--good); margin-left: auto; }
+.hint { color: var(--ink-3); font-size: .8rem; }
+/* categories on the home page */
+.pick-hint { margin: 18px 0 0; font-size: .85rem; font-weight: 600; color: var(--ink-3); }
+.cats { display: flex; gap: 6px; margin: 8px -16px 0; padding: 2px 16px 4px; overflow-x: auto; scrollbar-width: none; max-width: 592px; }
+.cats::-webkit-scrollbar { display: none; }
+.cats button {
+  flex: none; border: 1.5px solid transparent; background: var(--surface-2); padding: 7px 13px; border-radius: 999px;
+  font-weight: 600; font-size: .86rem; color: var(--ink-2);
+}
+.cats button:hover { border-color: var(--line); color: var(--ink); }
+.cats button[aria-selected="true"] { background: var(--ink); color: var(--on-ink); }
+/* Indian scripts need more room above and below the line */
+:lang(hi) h1, :lang(hi) h2, :lang(hi) h3, :lang(mr) h1, :lang(mr) h2, :lang(mr) h3 { line-height: 1.3; letter-spacing: 0; }
+:lang(hi), :lang(mr) { line-height: 1.6; }
+[lang]:not([lang="en"]) .qtext, .qtext:not(:lang(en)) { line-height: 1.6; }
 
 /* phones: dialogs become bottom sheets */
+@media (max-width: 400px) { .ai-chip .meter, .ai-chip .m, .brand small { display: none; } .ai-chip { padding: 5px 9px; } .appbar-in { gap: 7px; } }
 @media (max-width: 640px) {
   dialog { margin: auto 0 0; width: 100%; border-radius: var(--r-lg) var(--r-lg) 0 0; max-height: 94vh; }
   dialog[open] { animation: sheet-up .26s cubic-bezier(.2,.8,.2,1); }
@@ -477,7 +511,8 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
   main { padding: 0 24px 48px; }
   .hero { grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); align-items: center; padding-top: 44px; }
   .omr-demo { display: block; }
-  .chips { flex-wrap: wrap; overflow: visible; margin: 14px 0 0; padding: 0; }
+  .chips { flex-wrap: wrap; overflow: visible; margin: 10px 0 0; padding: 0; }
+  .cats { flex-wrap: wrap; overflow: visible; margin: 8px 0 0; padding: 0; }
   .exam { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 24px; align-items: start; }
   .exam-top { margin: 0; border-radius: 0 0 var(--r) var(--r); }
   .side-sheet { display: block; position: sticky; top: 16px; padding: 18px; margin-top: 16px; }
@@ -498,18 +533,22 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
 
 <header class="appbar">
   <div class="appbar-in" style="position:relative">
-    <a class="brand" href="#" data-go="home" aria-label="SkillQuiz home">
+    <a class="brand" href="#" data-go="home" data-i18n-aria="brand.home">
       <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13" fill="none" stroke="var(--accent)" stroke-width="3"/><circle cx="16" cy="16" r="7" fill="var(--ink)"/></svg>
       <span><b>SkillQuiz</b><small id="orgName"></small></span>
     </a>
     <nav class="topnav" aria-label="Main">
-      <button data-go="home" aria-current="page">Take a test</button>
-      <button data-go="board">Leaderboard</button>
-      <button data-go="mine">My results</button>
-      <button data-go="admin">Admin</button>
+      <button data-go="home" aria-current="page" data-i18n="nav.test">Take a test</button>
+      <button data-go="board" data-i18n="nav.board">Leaderboard</button>
+      <button data-go="mine" data-i18n="nav.mine">My results</button>
+      <button data-go="admin" data-i18n="nav.admin">Admin</button>
     </nav>
-    <button class="ai-chip" id="aiChip" type="button" aria-expanded="false" aria-controls="aiPop" title="AI model and today's free limit">
+    <button class="ai-chip" id="aiChip" type="button" aria-expanded="false" aria-controls="aiPop" data-i18n-title="ai.title">
       <i></i><span id="aiChipTxt">AI</span><span class="meter" aria-hidden="true"><span id="aiChipBar" style="width:0"></span></span>
+    </button>
+    <button class="lang-btn" id="langBtn" type="button" aria-haspopup="dialog" data-i18n-title="lang.label">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>
+      <span id="langBtnTxt">EN</span>
     </button>
     <span class="server-dot" id="serverDot" role="status" aria-label="Connecting to server"></span>
     <div class="ai-pop" id="aiPop" hidden></div>
@@ -521,38 +560,40 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
   <section id="v-home">
     <div class="hero">
       <div>
-        <h1>Type any technology. Get your own paper.</h1>
-        <p class="lede" id="lede">AI writes the questions and every person gets a different set, in a different order.</p>
+        <h1 data-i18n="home.title">Any exam. Any subject. Your own paper.</h1>
+        <p class="lede" data-i18n="home.lede"></p>
         <form class="topic-box" id="topicForm" autocomplete="off">
-          <label for="topicInput" class="sr">Technology or skill</label>
-          <input id="topicInput" maxlength="40" placeholder="Java, PHP, GenAI…" required enterkeyhint="go">
-          <button class="btn" type="submit">Start</button>
+          <label for="topicInput" class="sr" data-i18n="home.topicLabel">Exam, subject or topic</label>
+          <input id="topicInput" maxlength="60" data-i18n-ph="home.placeholder" required enterkeyhint="go">
+          <button class="btn" type="submit" data-i18n="home.start">Start</button>
         </form>
-        <div class="chips" id="chips" aria-label="Popular topics"></div>
+        <p class="pick-hint" data-i18n="home.pick">Pick a topic or type your own</p>
+        <div class="cats" id="cats" role="tablist" aria-label="Categories"></div>
+        <div class="chips" id="chips" role="tabpanel"></div>
         <div class="facts">
-          <div class="fact"><b id="factQ">20</b><span>questions<br>per test</span></div>
-          <div class="fact"><b id="factT">30</b><span>minutes<br>to finish</span></div>
-          <div class="fact"><b>4</b><span>options<br>each</span></div>
+          <div class="fact"><b id="factQ">20</b><span data-i18n="home.factQ"></span></div>
+          <div class="fact"><b id="factT">30</b><span data-i18n="home.factT"></span></div>
+          <div class="fact"><b id="factL">11</b><span data-i18n="home.factL"></span></div>
         </div>
       </div>
       <div class="omr-demo card" aria-hidden="true">
-        <header><b>Answer sheet</b><span>Fill one bubble</span></header>
+        <header><b data-i18n="omr.title">Answer sheet</b><span data-i18n="omr.fill">Fill one bubble</span></header>
         <div id="demoRows"></div>
-        <p class="foot">The person next to you gets different questions, and the options are shuffled too.</p>
+        <p class="foot" data-i18n="omr.foot"></p>
       </div>
     </div>
 
     <div class="install-card card" id="installCard" hidden>
       <img src="icons/icon-192.png" alt="" width="52" height="52">
-      <div class="install-txt"><b>Get the SkillQuiz app</b><span>Adds an icon to your home screen. Opens full screen, no app store needed.</span></div>
-      <button class="btn small" type="button" id="installBtn">Install app</button>
+      <div class="install-txt"><b data-i18n="install.title">Get the SkillQuiz app</b><span data-i18n="install.sub"></span></div>
+      <button class="btn small" type="button" id="installBtn" data-i18n="install.btn">Install app</button>
     </div>
 
     <div class="rules-strip card">
-      <h2>Before you start</h2>
-      <div class="rule"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg><span>Stay on the test screen. Switching apps or tabs, or closing the page, submits your test.</span></div>
-      <div class="rule"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg><span>Copying questions is not allowed and also submits the test.</span></div>
-      <div class="rule"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Silence calls and notifications first, and keep your phone charged.</span></div>
+      <h2 data-i18n="rules.title">Before you start</h2>
+      <div class="rule"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg><span data-i18n="rules.r1"></span></div>
+      <div class="rule"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg><span data-i18n="rules.r2"></span></div>
+      <div class="rule"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span data-i18n="rules.r3"></span></div>
     </div>
   </section>
 
@@ -561,12 +602,12 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
     <div class="prep">
       <div>
         <div class="fill-row" id="prepBubbles" aria-hidden="true"></div>
-        <h2 id="prepTitle">Preparing your paper</h2>
-        <p class="muted" id="prepMsg">Picking questions you haven't seen before.</p>
+        <h2 id="prepTitle"></h2>
+        <p class="muted" id="prepMsg"></p>
         <p class="muted" id="prepTime" aria-live="polite"></p>
         <div class="row-btns" id="prepActions" hidden style="justify-content:center;margin-top:18px">
-          <button class="btn" type="button" id="prepRetry">Try again</button>
-          <button class="btn ghost" type="button" id="prepLeave">Leave without submitting</button>
+          <button class="btn" type="button" id="prepRetry" data-i18n="prep.retry">Try again</button>
+          <button class="btn ghost" type="button" id="prepLeave" data-i18n="prep.leave">Leave without submitting</button>
         </div>
       </div>
     </div>
@@ -579,7 +620,7 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
         <div class="exam-top">
           <div class="exam-top-row">
             <div class="exam-title"><b id="quizTitle"></b><small id="quizWho"></small></div>
-            <div class="timer" id="timer" role="timer" aria-label="Time left">
+            <div class="timer" id="timer" role="timer" data-i18n-aria="exam.timeLeft">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg>
               <span id="timerTxt">30:00</span>
             </div>
@@ -592,19 +633,19 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
             <div class="qtext" id="qText"></div>
             <div class="opts" id="qOpts" role="radiogroup" aria-labelledby="qText"></div>
           </article>
-          <p class="swipe-hint" id="swipeHint">Swipe left or right to move between questions</p>
+          <p class="swipe-hint" id="swipeHint" data-i18n="exam.swipe"></p>
         </div>
       </div>
-      <aside class="side-sheet card" aria-label="Answer sheet">
-        <b style="font-family:var(--display)">Answer sheet</b>
+      <aside class="side-sheet card" data-i18n-aria="exam.sheet">
+        <b style="font-family:var(--display)" data-i18n="exam.sheet">Answer sheet</b>
         <div class="muted" id="sideProgress" style="font-size:.85rem"></div>
         <div class="qgrid" id="sideGrid"></div>
-        <button class="btn block accent" type="button" id="sideSubmit" style="margin-top:14px">Submit test</button>
+        <button class="btn block accent" type="button" id="sideSubmit" style="margin-top:14px" data-i18n="exam.submit">Submit test</button>
       </aside>
     </div>
     <div class="exam-bar">
       <div class="exam-bar-in">
-        <button class="btn ghost icon-btn" id="prevBtn" type="button" aria-label="Previous question">
+        <button class="btn ghost icon-btn" id="prevBtn" type="button" data-i18n-aria="exam.prev">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
         </button>
         <button class="grid-btn" id="gridBtn" type="button" aria-haspopup="dialog">
@@ -629,22 +670,22 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
         <span id="rBannerTxt"></span>
       </div>
       <div class="res-stats">
-        <div class="stat"><b id="rRank">–</b><span id="rRankOf">rank</span></div>
-        <div class="stat"><b id="rTime">–</b><span>time taken</span></div>
-        <div class="stat"><b id="rLevel">–</b><span>level</span></div>
+        <div class="stat"><b id="rRank">–</b><span id="rRankOf"></span></div>
+        <div class="stat"><b id="rTime">–</b><span data-i18n="res.timeTaken">time taken</span></div>
+        <div class="stat"><b id="rLevel">–</b><span data-i18n="res.level">difficulty</span></div>
       </div>
       <dl class="kv card" id="rDetails"></dl>
       <div class="res-actions">
-        <button class="btn" data-go="home" type="button">New test</button>
-        <button class="btn ghost" id="rBoardBtn" type="button">Leaderboard</button>
+        <button class="btn" data-go="home" type="button" data-i18n="res.new">New test</button>
+        <button class="btn ghost" id="rBoardBtn" type="button" data-i18n="res.board">Leaderboard</button>
       </div>
     </div>
     <div class="review-head">
-      <h3>Answer review</h3>
-      <div class="pills" role="group" aria-label="Filter answers">
-        <button type="button" data-f="all" aria-pressed="true">All</button>
-        <button type="button" data-f="wrong" aria-pressed="false">Wrong</button>
-        <button type="button" data-f="right" aria-pressed="false">Correct</button>
+      <h3 data-i18n="res.review">Answer review</h3>
+      <div class="pills" role="group">
+        <button type="button" data-f="all" aria-pressed="true" data-i18n="res.fAll">All</button>
+        <button type="button" data-f="wrong" aria-pressed="false" data-i18n="res.fWrong">Wrong</button>
+        <button type="button" data-f="right" aria-pressed="false" data-i18n="res.fRight">Correct</button>
       </div>
     </div>
     <div class="review" id="rReview"></div>
@@ -652,112 +693,115 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
 
   <!-- ================= LEADERBOARD ================= -->
   <section id="v-board" hidden>
-    <h1 class="page-title">Leaderboard</h1>
-    <p class="muted" style="margin:0">Best score first. On a tie, the faster finish ranks higher.</p>
+    <h1 class="page-title" data-i18n="board.title">Leaderboard</h1>
+    <p class="muted" style="margin:0" data-i18n="board.sub"></p>
     <form class="filter-bar" id="boardForm">
-      <div class="field"><label for="bTopic">Topic</label><input id="bTopic" maxlength="40" placeholder="All topics"></div>
-      <div class="field"><label for="bLevel">Level</label>
-        <select id="bLevel"><option value="">All levels</option><option value="BEGINNER">Beginner</option><option value="INTERMEDIATE">Intermediate</option><option value="ADVANCED">Advanced</option></select>
+      <div class="field"><label for="bTopic" data-i18n="f.topic">Topic</label><input id="bTopic" maxlength="60" data-i18n-ph="f.allTopics"></div>
+      <div class="field"><label for="bLevel" data-i18n="f.level">Difficulty</label>
+        <select id="bLevel"><option value="" data-i18n="f.allLevels">All</option><option value="BEGINNER" data-i18n="lvl.BEGINNER">Easy</option><option value="INTERMEDIATE" data-i18n="lvl.INTERMEDIATE">Medium</option><option value="ADVANCED" data-i18n="lvl.ADVANCED">Hard</option></select>
       </div>
-      <div class="field"><label for="bDays">Period</label>
-        <select id="bDays"><option value="">All time</option><option value="1">Today</option><option value="7">Last 7 days</option><option value="30">Last 30 days</option></select>
+      <div class="field"><label for="bDays" data-i18n="f.period">Period</label>
+        <select id="bDays"><option value="" data-i18n="f.allTime">All time</option><option value="1" data-i18n="f.today">Today</option><option value="7" data-i18n="f.d7">Last 7 days</option><option value="30" data-i18n="f.d30">Last 30 days</option></select>
       </div>
-      <label class="agree toggle"><input type="checkbox" id="bBest" checked> Best attempt per person</label>
-      <button class="btn small" type="submit">Show</button>
+      <label class="agree toggle"><input type="checkbox" id="bBest" checked> <span data-i18n="f.best">Best attempt per person</span></label>
+      <button class="btn small" type="submit" data-i18n="f.show">Show</button>
     </form>
     <div class="card list" id="boardList"></div>
   </section>
 
   <!-- ================= MY RESULTS ================= -->
   <section id="v-mine" hidden>
-    <h1 class="page-title">My results</h1>
-    <p class="muted" style="margin:0">Every test you have submitted, newest first. Tap one to see the answers.</p>
+    <h1 class="page-title" data-i18n="mine.title">My results</h1>
+    <p class="muted" style="margin:0" data-i18n="mine.sub"></p>
     <form class="filter-bar" id="mineForm">
-      <div class="field" style="grid-column:1/-1"><label for="mEmp">Employee ID</label><input id="mEmp" maxlength="30" required autocapitalize="characters"></div>
-      <button class="btn small" type="submit">Show my results</button>
+      <div class="field" style="grid-column:1/-1"><label for="mEmp" data-i18n="mine.id">Your ID</label><input id="mEmp" maxlength="30" required autocapitalize="characters"></div>
+      <button class="btn small" type="submit" data-i18n="mine.show">Show my results</button>
     </form>
     <div class="card list" id="mineList"></div>
   </section>
 
   <!-- ================= ADMIN ================= -->
   <section id="v-admin" hidden>
-    <h1 class="page-title">Admin</h1>
+    <h1 class="page-title" data-i18n="adm.title">Admin</h1>
     <form class="filter-bar" id="adminLogin">
-      <div class="field" style="grid-column:1/-1"><label for="aKey">Admin password</label><input id="aKey" type="password" required autocomplete="current-password"></div>
-      <button class="btn small" type="submit">Open admin</button>
+      <div class="field" style="grid-column:1/-1"><label for="aKey" data-i18n="adm.pass">Admin password</label><input id="aKey" type="password" required autocomplete="current-password"></div>
+      <button class="btn small" type="submit" data-i18n="adm.open">Open admin</button>
     </form>
     <div id="adminBody" hidden>
       <div class="admin-grid">
         <div class="card admin-card">
-          <h2>AI usage today</h2>
-          <p class="muted">Free limit per model. Resets at <span id="aiReset"></span>. Counted by this app.</p>
+          <h2 data-i18n="ai.usageTitle">AI usage today</h2>
+          <p class="muted" id="aiUsageSub"></p>
           <div id="aiUsage"></div>
         </div>
         <div class="card admin-card">
-          <h2>Prepare topics for test day</h2>
-          <p class="muted">Do this a day before. Questions get written now, so on test day nobody waits and no AI limit is used.</p>
+          <h2 data-i18n="prepT.title">Prepare topics for test day</h2>
+          <p class="muted" data-i18n="prepT.sub"></p>
           <form id="prepForm" class="prep-form">
-            <div class="field"><label for="prepTopics">Topics, one per line</label>
-              <textarea id="prepTopics" rows="4" placeholder="Java&#10;Python&#10;GenAI"></textarea></div>
-            <fieldset class="checks" id="prepLevels"><legend>Levels</legend>
-              <label><input type="checkbox" value="BEGINNER"> Beginner</label>
-              <label><input type="checkbox" value="INTERMEDIATE" checked> Intermediate</label>
-              <label><input type="checkbox" value="ADVANCED"> Advanced</label>
+            <div class="field"><label for="prepTopics" data-i18n="prepT.topics">Topics, one per line</label>
+              <textarea id="prepTopics" rows="4" placeholder="MPSC&#10;UPSC History&#10;Java"></textarea></div>
+            <fieldset class="checks" id="prepLevels"><legend data-i18n="prepT.levels">Difficulty</legend>
+              <label><input type="checkbox" value="BEGINNER"> <span data-i18n="lvl.BEGINNER">Easy</span></label>
+              <label><input type="checkbox" value="INTERMEDIATE" checked> <span data-i18n="lvl.INTERMEDIATE">Medium</span></label>
+              <label><input type="checkbox" value="ADVANCED"> <span data-i18n="lvl.ADVANCED">Hard</span></label>
             </fieldset>
-            <button class="btn small" type="submit" id="prepGo">Prepare topics</button>
+            <fieldset class="checks" id="prepLangs"><legend data-i18n="prepT.langs">Question languages</legend></fieldset>
+            <button class="btn small" type="submit" id="prepGo" data-i18n="prepT.go">Prepare topics</button>
           </form>
           <ul class="prep-log" id="prepLog" aria-live="polite"></ul>
         </div>
         <div class="card admin-card wide results-card">
-          <h2>All results</h2>
-          <p class="muted">Every test, including ones that were started but not submitted. Tap a row for full detail.</p>
+          <h2 data-i18n="all.title">All results</h2>
+          <p class="muted" data-i18n="all.sub"></p>
           <div class="tiles" id="aSummary"></div>
           <form class="filter-bar admin-filters" id="aFilter">
-            <div class="field wide-f"><label for="fSearch">Search name, ID or team</label><input id="fSearch" type="search" placeholder="e.g. Neha or E100"></div>
-            <div class="field"><label for="fStatus">Status</label>
-              <select id="fStatus"><option value="">All</option><option value="SUBMITTED">Submitted</option><option value="AUTO">Auto-submitted</option><option value="IN_PROGRESS">In progress</option><option value="ABANDONED">Started, not submitted</option><option value="PASS">Pass</option><option value="FAIL">Fail</option></select>
+            <div class="field wide-f"><label for="fSearch" data-i18n="f.search">Search name, ID or team</label><input id="fSearch" type="search" data-i18n-ph="f.searchPh"></div>
+            <div class="field"><label for="fStatus" data-i18n="f.status">Status</label>
+              <select id="fStatus"><option value="" data-i18n="st.all">All</option><option value="SUBMITTED" data-i18n="st.SUBMITTED">Submitted</option><option value="AUTO" data-i18n="st.AUTO">Auto-submitted</option><option value="IN_PROGRESS" data-i18n="st.IN_PROGRESS">In progress</option><option value="ABANDONED" data-i18n="st.ABANDONED">Started, not submitted</option><option value="PASS" data-i18n="st.PASS">Pass</option><option value="FAIL" data-i18n="st.FAIL">Fail</option></select>
             </div>
-            <div class="field"><label for="fTopic">Topic</label><select id="fTopic"><option value="">All topics</option></select></div>
-            <div class="field"><label for="fFrom">From</label><input id="fFrom" type="date"></div>
-            <div class="field"><label for="fTo">To</label><input id="fTo" type="date"></div>
+            <div class="field"><label for="fTopic" data-i18n="f.topic">Topic</label><select id="fTopic"><option value="" data-i18n="f.allTopics">All topics</option></select></div>
+            <div class="field"><label for="fLang" data-i18n="f.lang">Language</label><select id="fLang"><option value="" data-i18n="f.allLangs">All languages</option></select></div>
+            <div class="field"><label for="fFrom" data-i18n="f.from">From</label><input id="fFrom" type="date"></div>
+            <div class="field"><label for="fTo" data-i18n="f.to">To</label><input id="fTo" type="date"></div>
           </form>
           <div class="row-btns">
-            <button class="btn small" id="csvBtn" type="button">Download CSV (Excel)</button>
-            <button class="btn small ghost" id="aRefresh" type="button">Refresh</button>
+            <button class="btn small" id="csvBtn" type="button" data-i18n="adm.csv">Download CSV (Excel)</button>
+            <button class="btn small ghost" id="aRefresh" type="button" data-i18n="adm.refresh">Refresh</button>
           </div>
           <p class="muted" id="aCount" style="margin:0 0 4px;font-size:.88rem"></p>
           <div class="list" id="adminList"></div>
         </div>
         <div class="card admin-card wide">
-          <h2>Check AI questions</h2>
-          <p class="muted">AI can occasionally get an answer wrong. Switch such a question off and nobody gets it again.</p>
-          <form class="filter-bar" id="qForm" style="margin-top:0">
-            <div class="field"><label for="qTopic">Topic</label><input id="qTopic" maxlength="40" required></div>
-            <div class="field"><label for="qLevel">Level</label>
-              <select id="qLevel"><option value="">All levels</option><option value="BEGINNER">Beginner</option><option value="INTERMEDIATE">Intermediate</option><option value="ADVANCED">Advanced</option></select>
+          <h2 data-i18n="chk.title">Check AI questions</h2>
+          <p class="muted" data-i18n="chk.sub"></p>
+          <form class="filter-bar q-filters" id="qForm" style="margin-top:0">
+            <div class="field"><label for="qTopic" data-i18n="f.topic">Topic</label><input id="qTopic" maxlength="60" required></div>
+            <div class="field"><label for="qLevel" data-i18n="f.level">Difficulty</label>
+              <select id="qLevel"><option value="" data-i18n="f.allLevels">All</option><option value="BEGINNER" data-i18n="lvl.BEGINNER">Easy</option><option value="INTERMEDIATE" data-i18n="lvl.INTERMEDIATE">Medium</option><option value="ADVANCED" data-i18n="lvl.ADVANCED">Hard</option></select>
             </div>
-            <button class="btn small" type="submit">Show questions</button>
+            <div class="field"><label for="qLang" data-i18n="f.lang">Language</label><select id="qLang"><option value="" data-i18n="f.allLangs">All languages</option></select></div>
+            <button class="btn small" type="submit" data-i18n="chk.show">Show questions</button>
           </form>
           <div id="qList"></div>
         </div>
         <div class="card admin-card wide danger-card">
-          <h2>Delete results</h2>
-          <p class="muted">Removes test results permanently. AI questions stay. Download the CSV first if you need a copy.</p>
+          <h2 data-i18n="del.title">Delete results</h2>
+          <p class="muted" data-i18n="del.sub"></p>
           <form id="delForm" class="prep-form">
-            <div class="seg" role="radiogroup" aria-label="What to delete">
-              <input type="radio" name="delScope" id="d1" value="before" checked><label for="d1">Older than<small>a date</small></label>
-              <input type="radio" name="delScope" id="d2" value="employee"><label for="d2">One person<small>by ID</small></label>
-              <input type="radio" name="delScope" id="d3" value="all"><label for="d3">Everything<small>all results</small></label>
+            <div class="seg" role="radiogroup">
+              <input type="radio" name="delScope" id="d1" value="before" checked><label for="d1"><span data-i18n="del.older">Older than</span><small data-i18n="del.olderHint">a date</small></label>
+              <input type="radio" name="delScope" id="d2" value="employee"><label for="d2"><span data-i18n="del.one">One person</span><small data-i18n="del.oneHint">by ID</small></label>
+              <input type="radio" name="delScope" id="d3" value="all"><label for="d3"><span data-i18n="del.all">Everything</span><small data-i18n="del.allHint">all results</small></label>
             </div>
-            <div class="field" id="delDateF"><label for="delDate">Delete results from before</label><input id="delDate" type="date"></div>
-            <div class="field" id="delEmpF" hidden><label for="delEmp">Employee ID</label><input id="delEmp" maxlength="30" autocapitalize="characters"></div>
-            <button class="btn small ghost" type="submit">Check how many</button>
+            <div class="field" id="delDateF"><label for="delDate" data-i18n="del.before">Delete results from before</label><input id="delDate" type="date"></div>
+            <div class="field" id="delEmpF" hidden><label for="delEmp" data-i18n="del.id">ID</label><input id="delEmp" maxlength="30" autocapitalize="characters"></div>
+            <button class="btn small ghost" type="submit" data-i18n="del.check">Check how many</button>
           </form>
           <div id="delConfirm" class="del-confirm" hidden>
             <p id="delMsg"></p>
             <div class="row-btns">
               <button class="btn small danger" type="button" id="delGo">Delete</button>
-              <button class="btn small ghost" type="button" id="delCancel">Cancel</button>
+              <button class="btn small ghost" type="button" id="delCancel" data-i18n="del.cancel">Cancel</button>
             </div>
           </div>
         </div>
@@ -767,41 +811,55 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
 </main>
 
 <nav class="tabbar" aria-label="Main">
-  <button data-go="home" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4" fill="currentColor"/></svg>Test</button>
-  <button data-go="board"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg>Leaderboard</button>
-  <button data-go="mine"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg>My results</button>
-  <button data-go="admin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Admin</button>
+  <button data-go="home" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4" fill="currentColor"/></svg><span data-i18n="tab.test">Test</span></button>
+  <button data-go="board"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg><span data-i18n="tab.board">Leaderboard</span></button>
+  <button data-go="mine"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg><span data-i18n="tab.mine">My results</span></button>
+  <button data-go="admin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span data-i18n="tab.admin">Admin</span></button>
 </nav>
+
+<!-- app language -->
+<dialog id="langDlg" aria-labelledby="langTitle">
+  <div class="sheet-in">
+    <div class="sheet-grip" aria-hidden="true"></div>
+    <h2 id="langTitle" data-i18n="lang.choose">Choose your language</h2>
+    <p class="muted" style="margin:4px 0 0" data-i18n="lang.chooseSub"></p>
+    <div class="lang-opts" id="langOpts"></div>
+  </div>
+</dialog>
 
 <!-- start test -->
 <dialog id="startDlg" aria-labelledby="dlgTitle">
   <div class="sheet-in">
     <div class="sheet-grip" aria-hidden="true"></div>
     <h2 id="dlgTitle"></h2>
-    <p class="muted" style="margin:4px 0 0">Your name and ID go on the result and the leaderboard.</p>
+    <p class="muted" style="margin:4px 0 0" data-i18n="start.sub"></p>
     <form id="startForm" method="dialog" novalidate>
       <div class="two">
-        <div class="field"><label for="fEmp">Employee ID</label><input id="fEmp" maxlength="30" required autocomplete="off" autocapitalize="characters"></div>
-        <div class="field"><label for="fName">Full name</label><input id="fName" maxlength="80" required autocomplete="name" autocapitalize="words"></div>
+        <div class="field"><label for="fEmp" data-i18n="start.id">ID</label><input id="fEmp" maxlength="30" required autocomplete="off" autocapitalize="characters"></div>
+        <div class="field"><label for="fName" data-i18n="start.name">Full name</label><input id="fName" maxlength="80" required autocomplete="name" autocapitalize="words"></div>
       </div>
-      <div class="field"><label for="fDept">Team (optional)</label><input id="fDept" maxlength="80"></div>
+      <div class="field"><label for="fDept" data-i18n="start.team">Team (optional)</label><input id="fDept" maxlength="80"></div>
+      <div class="field"><label for="fQLang" data-i18n="start.qlang">Question language</label>
+        <select id="fQLang"></select>
+        <small class="hint" data-i18n="start.qlangHint"></small>
+      </div>
       <fieldset style="border:0;padding:0;margin:0">
-        <legend style="font-weight:600;font-size:.88rem;margin-bottom:6px">Level</legend>
+        <legend style="font-weight:600;font-size:.88rem;margin-bottom:6px" data-i18n="start.level">Difficulty</legend>
         <div class="seg">
-          <input type="radio" name="lvl" id="l1" value="BEGINNER"><label for="l1">Beginner<small>basics</small></label>
-          <input type="radio" name="lvl" id="l2" value="INTERMEDIATE" checked><label for="l2">Intermediate<small>2–5 yrs</small></label>
-          <input type="radio" name="lvl" id="l3" value="ADVANCED"><label for="l3">Advanced<small>expert</small></label>
+          <input type="radio" name="lvl" id="l1" value="BEGINNER"><label for="l1"><span data-i18n="lvl.BEGINNER">Easy</span><small data-i18n="lvlHint.BEGINNER">basics</small></label>
+          <input type="radio" name="lvl" id="l2" value="INTERMEDIATE" checked><label for="l2"><span data-i18n="lvl.INTERMEDIATE">Medium</span><small data-i18n="lvlHint.INTERMEDIATE">exam level</small></label>
+          <input type="radio" name="lvl" id="l3" value="ADVANCED"><label for="l3"><span data-i18n="lvl.ADVANCED">Hard</span><small data-i18n="lvlHint.ADVANCED">toughest</small></label>
         </div>
       </fieldset>
       <div class="rules-box">
-        <b>Exam rules</b>
+        <b data-i18n="start.rules">Exam rules</b>
         <ul id="rulesList"></ul>
       </div>
-      <label class="agree"><input type="checkbox" id="fAgree"> I understand. Leaving the exam screen or copying submits my test.</label>
+      <label class="agree"><input type="checkbox" id="fAgree"> <span data-i18n="start.agree"></span></label>
       <p class="err" id="startErr" hidden></p>
       <div class="actions">
-        <button class="btn ghost" type="button" id="dlgCancel">Cancel</button>
-        <button class="btn" type="submit" id="dlgGo">Start test</button>
+        <button class="btn ghost" type="button" id="dlgCancel" data-i18n="start.cancel">Cancel</button>
+        <button class="btn" type="submit" id="dlgGo" data-i18n="start.go">Start test</button>
       </div>
     </form>
   </div>
@@ -811,13 +869,13 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
 <dialog id="gridDlg" aria-labelledby="gridTitle">
   <div class="sheet-in">
     <div class="sheet-grip" aria-hidden="true"></div>
-    <h2 id="gridTitle">Questions</h2>
+    <h2 id="gridTitle" data-i18n="exam.questions">Questions</h2>
     <p class="muted" id="gridProgress" style="margin:4px 0 0"></p>
     <div class="qgrid" id="sheetGrid"></div>
-    <div class="legend"><span><i class="f"></i>Answered</span><span><i></i>Not answered</span></div>
+    <div class="legend"><span><i class="f"></i><span data-i18n="exam.answered">Answered</span></span><span><i></i><span data-i18n="exam.notAnswered">Not answered</span></span></div>
     <div class="actions" style="margin-top:18px">
-      <button class="btn ghost" type="button" id="gridClose">Back</button>
-      <button class="btn accent" type="button" id="gridSubmit">Submit test</button>
+      <button class="btn ghost" type="button" id="gridClose" data-i18n="exam.back">Back</button>
+      <button class="btn accent" type="button" id="gridSubmit" data-i18n="exam.submit">Submit test</button>
     </div>
   </div>
 </dialog>
@@ -826,11 +884,11 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
 <dialog id="submitDlg" aria-labelledby="subTitle">
   <div class="sheet-in">
     <div class="sheet-grip" aria-hidden="true"></div>
-    <h2 id="subTitle">Submit your test?</h2>
+    <h2 id="subTitle" data-i18n="submit.title">Submit your test?</h2>
     <p id="subMsg"></p>
     <div class="actions">
-      <button class="btn ghost" type="button" id="subCancel">Keep answering</button>
-      <button class="btn accent" type="button" id="subGo">Submit test</button>
+      <button class="btn ghost" type="button" id="subCancel" data-i18n="submit.keep">Keep answering</button>
+      <button class="btn accent" type="button" id="subGo" data-i18n="exam.submit">Submit test</button>
     </div>
   </div>
 </dialog>
@@ -838,9 +896,9 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
 <!-- leave warning -->
 <dialog id="warnDlg" aria-labelledby="warnTitle">
   <div class="sheet-in">
-    <h2 id="warnTitle">You left the exam screen</h2>
+    <h2 id="warnTitle" data-i18n="warn.title">You left the exam screen</h2>
     <p id="warnMsg"></p>
-    <div class="actions"><button class="btn" type="button" id="warnOk">Continue the test</button></div>
+    <div class="actions"><button class="btn" type="button" id="warnOk" data-i18n="warn.ok">Continue the test</button></div>
   </div>
 </dialog>
 
@@ -848,7 +906,7 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
 <dialog id="attemptDlg" aria-labelledby="atTitle" class="wide-dlg">
   <div class="sheet-in">
     <div class="sheet-grip" aria-hidden="true"></div>
-    <div class="dlg-head"><h2 id="atTitle">Attempt</h2><button class="btn small ghost" type="button" id="atClose">Close</button></div>
+    <div class="dlg-head"><h2 id="atTitle"></h2><button class="btn small ghost" type="button" id="atClose" data-i18n="d.close">Close</button></div>
     <div id="atBody"></div>
   </div>
 </dialog>
@@ -857,11 +915,11 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
 <dialog id="installDlg" aria-labelledby="instTitle">
   <div class="sheet-in">
     <div class="sheet-grip" aria-hidden="true"></div>
-    <h2 id="instTitle">Install SkillQuiz</h2>
+    <h2 id="instTitle" data-i18n="inst.title">Install SkillQuiz</h2>
     <ol class="ios-steps" id="instSteps"></ol>
     <div class="actions">
-      <button class="btn ghost" type="button" id="instCopy" hidden>Copy link</button>
-      <button class="btn" type="button" id="instOk">Got it</button>
+      <button class="btn ghost" type="button" id="instCopy" hidden data-i18n="inst.copy">Copy link</button>
+      <button class="btn" type="button" id="instOk" data-i18n="inst.ok">Got it</button>
     </div>
   </div>
 </dialog>
@@ -875,16 +933,16 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
   const API = (CFG.apiBase || "").replace(/\/+$/, "");
   const LEAVE_WARNINGS = Math.max(0, Number(CFG.leaveWarnings) || 0);
   const $ = (s, el = document) => el.querySelector(s);
+  const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+  const I18N = window.I18N;
+  const t = (k, p) => I18N.t(k, p);
   const LETTERS = ["A", "B", "C", "D"];
-  const LEVEL_NAME = { BEGINNER: "Beginner", INTERMEDIATE: "Intermediate", ADVANCED: "Advanced" };
-  const END_TEXT = {
-    TIMEOUT: "Time ran out, so your answers were submitted automatically.",
-    TAB_SWITCH: "Submitted automatically because you left the exam screen.",
-    COPY: "Submitted automatically because copying is not allowed.",
-    CLOSED: "Submitted automatically because the exam page was closed."
-  };
-  const END_TAG = { TIMEOUT: "Time over", TAB_SWITCH: "Left screen", COPY: "Copy attempt", CLOSED: "Closed tab" };
+  const lvl = l => l ? t("lvl." + l) : "";
+  const QLANG = Object.fromEntries(I18N.QUESTION_LANGS.map(l => [l.code, l.label.split(" (")[0]]));
+  const langName = c => QLANG[c || "en"] || c || "";
+  const AUTO = new Set(["TAB_SWITCH", "COPY", "CLOSED"]);
   let settings = { questionsPerTest: 20, timeLimitMinutes: 30 };
+  let curView = "home";
 
   // ---------- storage (may be unavailable) ----------
   const store = {
@@ -914,20 +972,27 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
     });
     return frag;
   }
+  /** translation text with **bold** parts */
+  function md(text) {
+    return String(text).split(/\*\*(.+?)\*\*/g).map((p, i) => i % 2 ? el("b", {}, p) : p);
+  }
   const bubble = (letter, cls = "") => el("span", { class: "bub " + cls, "aria-hidden": "true" }, letter);
   const mmss = s => `${Math.floor(s / 60)}:${String(Math.max(0, s % 60)).padStart(2, "0")}`;
-  const fmtDur = s => s >= 60 ? `${Math.floor(s / 60)}m ${s % 60}s` : `${s}s`;
-  const fmtDate = iso => iso ? new Date(iso).toLocaleString(undefined, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "";
-  const fmtTime = iso => iso ? new Date(iso).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }) : "";
-  const fmtDay = iso => iso ? new Date(iso).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }) : "";
-  /** "28 Oct 2026, 02:05 pm to 02:21 pm" */
+  const fmtDur = s => s >= 60 ? t("dur.ms", { m: Math.floor(s / 60), s: s % 60 }) : t("dur.s", { s });
+  const loc = () => I18N.locale() + "-u-nu-latn";
+  const fmtDate = iso => iso ? new Date(iso).toLocaleString(loc(), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "";
+  const fmtTime = iso => iso ? new Date(iso).toLocaleTimeString(loc(), { hour: "2-digit", minute: "2-digit" }) : "";
+  const fmtDay = iso => iso ? new Date(iso).toLocaleDateString(loc(), { day: "numeric", month: "short", year: "numeric" }) : "";
   function fmtRange(a, b) {
     if (!a) return "";
-    if (!b) return `${fmtDay(a)}, ${fmtTime(a)}, not finished`;
-    return fmtDay(a) === fmtDay(b) ? `${fmtDay(a)}, ${fmtTime(a)} to ${fmtTime(b)}` : `${fmtDate(a)} to ${fmtDate(b)}`;
+    if (!b) return t("range.notFinished", { a: `${fmtDay(a)}, ${fmtTime(a)}` });
+    return fmtDay(a) === fmtDay(b)
+      ? `${fmtDay(a)}, ` + t("range.to", { a: fmtTime(a), b: fmtTime(b) })
+      : t("range.to", { a: fmtDate(a), b: fmtDate(b) });
   }
   const kv = (label, value) => el("div", {}, el("dt", {}, label), el("dd", {}, value ?? "–"));
-  const STATUS_TAG = { IN_PROGRESS: ["In progress", "info"], ABANDONED: ["Started, not submitted", "warn"] };
+  const STATUS_CLS = { IN_PROGRESS: "info", ABANDONED: "warn" };
+  const statusTag = s => STATUS_CLS[s] ? el("span", { class: "tag " + STATUS_CLS[s] }, t("st." + s)) : null;
   const modelName = id => {
     if (!id) return "AI";
     if (id === "demo") return "Demo";
@@ -937,27 +1002,63 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
   const shortModel = id => modelName(id).replace(/^Gemini [\d.]+ /, "");
   let toastTimer;
   function toast(msg) {
-    const t = $("#toast"); t.textContent = msg; t.hidden = false;
-    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.hidden = true, 3800);
+    const tt = $("#toast"); tt.textContent = msg; tt.hidden = false;
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => tt.hidden = true, 3800);
   }
+  /** Errors carry a code from the server; the text is shown in the app's language. */
   async function api(path, opts = {}) {
     const res = await fetch(API + path, { ...opts, headers: { "Content-Type": "application/json", ...(opts.headers || {}) } })
-      .catch(() => { throw new Error("Can't reach the server. It may be waking up — try again in a minute."); });
+      .catch(() => { const e = new Error(t("err.NETWORK")); e.code = "NETWORK"; throw e; });
     if (!res.ok) {
-      let msg = `Something went wrong (${res.status}).`;
-      try { const j = await res.json(); if (j.error) msg = j.error; } catch {}
-      const e = new Error(msg); e.status = res.status; throw e;
+      let j = {};
+      try { j = await res.json(); } catch {}
+      const params = { status: res.status, ...(j.params || {}) };
+      const msg = j.code && I18N.has("err." + j.code) ? t("err." + j.code, params)
+        : (I18N.lang === "en" && j.error) ? j.error : t("err.GENERIC", params);
+      const e = new Error(msg); e.status = res.status; e.code = j.code; throw e;
     }
     const ct = res.headers.get("content-type") || "";
     return ct.includes("json") ? res.json() : res.text();
   }
 
+  // ---------- language ----------
+  function applyStatic() {
+    document.documentElement.lang = I18N.lang;
+    $$("[data-i18n]").forEach(n => n.textContent = t(n.dataset.i18n));
+    $$("[data-i18n-ph]").forEach(n => n.placeholder = t(n.dataset.i18nPh));
+    $$("[data-i18n-aria]").forEach(n => n.setAttribute("aria-label", t(n.dataset.i18nAria)));
+    $$("[data-i18n-title]").forEach(n => n.title = t(n.dataset.i18nTitle));
+    $("#langBtnTxt").textContent = I18N.APP_LANGS.find(l => l.code === I18N.lang).short;
+    const dot = $("#serverDot"); dot.setAttribute("aria-label", t(dot.dataset.state || "server.connecting"));
+  }
+  function openLang() {
+    $("#langOpts").replaceChildren(...I18N.APP_LANGS.map(l => el("button", {
+      class: "lang-opt", type: "button", lang: l.code, "aria-pressed": String(I18N.chosen && l.code === I18N.lang),
+      onclick: () => { setLang(l.code); $("#langDlg").close(); }
+    }, el("span", {}, l.label), el("small", {}, l.code === "en" ? "English" : l.code === "hi" ? "Hindi" : "Marathi"))));
+    $("#langDlg").showModal();
+  }
+  function setLang(code) {
+    I18N.set(code);
+    applyStatic();
+    renderAi(); renderCats(); renderChips();
+    // re-draw whatever is on screen
+    if (curView === "result" && state.lastResult) renderResult(state.lastResult);
+    if (curView === "quiz" && state.paper) { quizHeader(); renderQ(); }
+    if (curView === "board") loadBoard();
+    if (curView === "mine" && mineRows) renderMine(mineRows);
+    if (curView === "admin" && adminKey) renderAdmin();
+  }
+  $("#langBtn").addEventListener("click", openLang);
+  $("#langDlg").addEventListener("cancel", () => { if (!I18N.chosen) I18N.set(I18N.lang); });
+
   // ---------- views ----------
   const VIEWS = ["home", "prep", "quiz", "result", "board", "mine", "admin"];
   function show(name) {
     if (state.inQuiz && !["quiz", "prep", "result"].includes(name)) return; // locked during the exam
+    curView = name;
     VIEWS.forEach(v => $("#v-" + v).hidden = v !== name);
-    document.querySelectorAll("[data-go]").forEach(b => { if (b.tagName === "BUTTON") b.setAttribute("aria-current", b.dataset.go === name ? "page" : "false"); });
+    $$("[data-go]").forEach(b => { if (b.tagName === "BUTTON") b.setAttribute("aria-current", b.dataset.go === name ? "page" : "false"); });
     window.scrollTo({ top: 0 });
     $("#aiPop").hidden = true;
     if (name === "board") loadBoard();
@@ -969,15 +1070,18 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
   });
 
   // ---------- server + AI status ----------
-  async function ping() {
+  function setDot(cls, key) {
     const dot = $("#serverDot");
-    dot.className = "server-dot"; dot.setAttribute("aria-label", "Waking the server");
+    dot.className = "server-dot " + cls; dot.dataset.state = key; dot.setAttribute("aria-label", t(key));
+  }
+  async function ping() {
+    setDot("", "server.waking");
     for (let i = 0; i < 10; i++) {
-      try { await api("/api/health"); dot.className = "server-dot ok"; dot.setAttribute("aria-label", "Server online"); return true; }
+      try { await api("/api/health"); setDot("ok", "server.online"); return true; }
       catch { await new Promise(r => setTimeout(r, 6000)); }
     }
-    dot.className = "server-dot down"; dot.setAttribute("aria-label", "Server offline");
-    toast("Server is not responding. Try again in a minute.");
+    setDot("down", "server.offline");
+    toast(t("server.noResponse"));
     return false;
   }
   let aiStatus = null;
@@ -990,25 +1094,28 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
     const chip = $("#aiChip");
     const active = s.models.find(m => m.model === s.activeModel);
     if (s.demo) {
-      chip.className = "ai-chip ok"; $("#aiChipTxt").textContent = "Demo AI"; $("#aiChipBar").style.width = "100%";
+      chip.className = "ai-chip ok"; $("#aiChipTxt").textContent = t("ai.demo"); $("#aiChipBar").style.width = "100%";
     } else if (!active) {
-      chip.className = "ai-chip out"; $("#aiChipTxt").textContent = "AI limit used"; $("#aiChipBar").style.width = "0";
+      chip.className = "ai-chip out"; $("#aiChipTxt").textContent = t("ai.used"); $("#aiChipBar").style.width = "0";
     } else {
       const left = active.remaining / active.limit;
       chip.className = "ai-chip " + (left < .15 ? "low" : "ok");
-      $("#aiChipTxt").textContent = `${shortModel(active.model)} ${active.remaining} left`;
+      // model name hides on small phones (CSS), the count stays
+      const [pre, post] = t("ai.left", { model: "\u0000", n: active.remaining }).split("\u0000");
+      $("#aiChipTxt").replaceChildren(pre, el("span", { class: "m" }, shortModel(active.model)), post);
       $("#aiChipBar").style.width = Math.round(left * 100) + "%";
     }
-    const reset = new Date(s.resetsAt).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+    const reset = new Date(s.resetsAt).toLocaleTimeString(loc(), { hour: "2-digit", minute: "2-digit" });
     const rows = s.models.map(m => el("div", { class: "ai-row" + (m.model === s.activeModel ? " active" : "") },
-      el("div", { class: "top" }, el("b", {}, modelName(m.model)), el("span", { class: "muted" }, `${m.used} / ${m.limit} used`)),
+      el("div", { class: "top" }, el("b", { "data-inuse": t("ai.inUse") }, modelName(m.model)),
+        el("span", { class: "muted" }, t("ai.usedOf", { used: m.used, limit: m.limit }))),
       el("div", { class: "bar" }, el("span", { style: `width:${Math.min(100, Math.round(m.used * 100 / Math.max(1, m.limit)))}%` }))));
     $("#aiPop").replaceChildren(
-      el("h3", {}, "AI questions today"),
-      el("p", { class: "muted" }, s.demo ? "Demo mode: no real AI is used." :
-        (active ? `New topics use ${modelName(active.model)}. Free limits reset at ${reset}.` : `All free AI limits are used for today. Topics already prepared still work. Resets at ${reset}.`)),
+      el("h3", {}, t("ai.popTitle")),
+      el("p", { class: "muted" }, s.demo ? t("ai.popDemo") :
+        (active ? t("ai.popActive", { model: modelName(active.model), time: reset }) : t("ai.popOut", { time: reset }))),
       ...rows);
-    $("#aiReset").textContent = reset;
+    $("#aiUsageSub").textContent = t("ai.usageSub", { time: reset });
     $("#aiUsage").replaceChildren(...rows.map(r => r.cloneNode(true)));
   }
   $("#aiChip").addEventListener("click", e => {
@@ -1022,23 +1129,45 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
 
   // ---------- home ----------
   const state = { paper: null, answers: {}, idx: 0, deadline: 0, timerId: null, inQuiz: false, warnings: 0 };
-  const DEFAULT_CHIPS = ["Java", "Python", "PHP", "GenAI", "Spring Boot", "SQL", "JavaScript", "React", "AWS", "Docker"];
-  function renderChips(popular) {
+  // topic names stay in English: the AI understands them and the question language is chosen separately
+  const CATS = {
+    popular: [],
+    gov: ["UPSC", "MPSC", "SSC CGL", "SSC CHSL", "IBPS PO", "SBI Clerk", "RRB NTPC", "Police Bharti", "Talathi Bharti", "Railway Group D", "State PSC", "Indian Army Agniveer"],
+    teach: ["TGT", "PGT", "CTET", "MAHA TET", "UPTET", "REET", "KVS PRT", "Child Development and Pedagogy"],
+    entrance: ["NEET", "JEE Main", "MHT CET", "CUET", "CLAT", "CAT", "GATE", "NDA"],
+    school: ["Class 10 Science", "Class 10 Maths", "Class 12 Physics", "Class 12 Chemistry", "Class 12 Biology", "History", "Geography", "Economics", "Accountancy", "English Grammar", "Hindi Grammar", "Marathi Grammar"],
+    gk: ["General Knowledge", "Indian Polity", "Indian History", "Indian Geography", "Indian Economy", "General Science", "Reasoning", "Quantitative Aptitude", "Computer Awareness", "Maharashtra GK"],
+    tech: ["Java", "Python", "JavaScript", "SQL", "Spring Boot", "React", "GenAI", "AWS", "Docker", "PHP", "Data Structures", "Excel"]
+  };
+  const DEFAULT_POPULAR = ["UPSC", "MPSC", "SSC CGL", "TGT", "General Knowledge", "Reasoning", "Class 10 Maths", "NEET", "Java", "Python"];
+  let curCat = "popular", popular = [];
+  function renderCats() {
+    $("#cats").replaceChildren(...Object.keys(CATS).map(c => el("button", {
+      type: "button", role: "tab", "aria-selected": String(c === curCat),
+      onclick: () => { curCat = c; renderCats(); renderChips(); }
+    }, t("cat." + c))));
+  }
+  function renderChips() {
     const box = $("#chips"); box.replaceChildren();
-    const seen = new Set();
-    (popular || []).forEach(p => { seen.add(p.key); box.append(el("button", { class: "chip", type: "button", onclick: () => pickTopic(p.label) }, p.label, el("small", {}, p.attempts))); });
-    DEFAULT_CHIPS.filter(c => !seen.has(c.toLowerCase())).slice(0, Math.max(0, 10 - box.children.length))
-      .forEach(c => box.append(el("button", { class: "chip", type: "button", onclick: () => pickTopic(c) }, c)));
+    if (curCat === "popular") {
+      const seen = new Set();
+      popular.forEach(p => { seen.add(p.key); box.append(el("button", { class: "chip", type: "button", onclick: () => pickTopic(p.label) }, p.label, el("small", {}, p.attempts))); });
+      DEFAULT_POPULAR.filter(c => !seen.has(c.toLowerCase())).slice(0, Math.max(0, 12 - box.children.length))
+        .forEach(c => box.append(el("button", { class: "chip", type: "button", onclick: () => pickTopic(c) }, c)));
+    } else {
+      CATS[curCat].forEach(c => box.append(el("button", { class: "chip", type: "button", onclick: () => pickTopic(c) }, c)));
+    }
   }
   async function loadStats() {
     try {
       const s = await api("/api/stats");
       settings = { questionsPerTest: s.questionsPerTest || 20, timeLimitMinutes: s.timeLimitMinutes || 30 };
       $("#factQ").textContent = settings.questionsPerTest; $("#factT").textContent = settings.timeLimitMinutes;
-      renderChips(s.popular);
-    } catch { renderChips([]); }
+      popular = s.popular || [];
+    } catch {}
+    renderChips();
   }
-  function pickTopic(t) { $("#topicInput").value = t; openStart(); }
+  function pickTopic(tp) { $("#topicInput").value = tp; openStart(); }
   (function demoSheet() {
     const rows = $("#demoRows");
     [1, 3, 0, 2, 1, 0].forEach((p, i) => {
@@ -1050,6 +1179,7 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
   })();
 
   // ---------- start dialog ----------
+  $("#fQLang").replaceChildren(...I18N.QUESTION_LANGS.map(l => el("option", { value: l.code }, l.label)));
   $("#topicForm").addEventListener("submit", e => { e.preventDefault(); openStart(); });
   function openStart() {
     const topic = $("#topicInput").value.trim();
@@ -1057,15 +1187,13 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
     const me = store.get("me") || {};
     $("#fEmp").value = me.empId || ""; $("#fName").value = me.empName || ""; $("#fDept").value = me.department || "";
     if (me.level) { const r = document.querySelector(`input[name=lvl][value=${me.level}]`); if (r) r.checked = true; }
+    $("#fQLang").value = me.qlang || I18N.lang;
     $("#fAgree").checked = false;
-    $("#dlgTitle").textContent = topic + " test";
-    const leaveRule = LEAVE_WARNINGS > 0
-      ? `Stay on this screen. You get ${LEAVE_WARNINGS} warning${LEAVE_WARNINGS > 1 ? "s" : ""} for leaving; after that the test is submitted.`
-      : "Stay on this screen. Switching apps or tabs, a call, or closing the page submits the test immediately.";
+    $("#dlgTitle").textContent = t("start.title", { topic });
     $("#rulesList").replaceChildren(
-      el("li", {}, `${settings.questionsPerTest} questions, ${settings.timeLimitMinutes} minutes. It submits itself when time runs out.`),
-      el("li", {}, leaveRule),
-      el("li", {}, "Copying a question submits the test."));
+      el("li", {}, t("start.rule1", { q: settings.questionsPerTest, m: settings.timeLimitMinutes })),
+      el("li", {}, LEAVE_WARNINGS > 0 ? t("start.rule2w", { n: LEAVE_WARNINGS }) : t("start.rule2")),
+      el("li", {}, t("start.rule3")));
     $("#startErr").hidden = true;
     $("#startDlg").showModal();
   }
@@ -1076,22 +1204,24 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
       empId: $("#fEmp").value.trim(), empName: $("#fName").value.trim(),
       department: $("#fDept").value.trim() || null, topic: $("#topicInput").value.trim(),
       level: document.querySelector("input[name=lvl]:checked").value,
+      lang: $("#fQLang").value,
       installed: standalone
     };
     const errBox = $("#startErr");
     const fail = m => { errBox.textContent = m; errBox.hidden = false; };
-    if (!body.empId || !body.empName) return fail("Enter your employee ID and full name.");
-    if (!/^[A-Za-z0-9_./-]+$/.test(body.empId)) return fail("Employee ID can only have letters, numbers and - _ . /");
-    if (!$("#fAgree").checked) return fail("Tick the box to confirm you have read the exam rules.");
-    store.set("me", { empId: body.empId, empName: body.empName, department: body.department, level: body.level });
+    if (!body.empId || !body.empName) return fail(t("start.errNeed"));
+    if (!/^[A-Za-z0-9_./-]+$/.test(body.empId)) return fail(t("err.ID_CHARS"));
+    if (!$("#fAgree").checked) return fail(t("start.errAgree"));
+    store.set("me", { empId: body.empId, empName: body.empName, department: body.department, level: body.level, qlang: body.lang });
     $("#startDlg").close();
     await startTest(body);
   });
 
   async function startTest(body) {
     show("prep");
-    $("#prepTitle").textContent = `Preparing your ${body.topic} paper`;
-    $("#prepMsg").textContent = "Picking questions you haven't seen before.";
+    $("#prepTitle").textContent = t("prep.title", { topic: body.topic });
+    $("#prepMsg").textContent = t("prep.pick");
+    $("#prepTime").textContent = "";
     const bubs = $("#prepBubbles"); bubs.replaceChildren(...LETTERS.map(l => bubble(l)));
     let i = 0, retryNote = "";
     const t0 = Date.now();
@@ -1099,8 +1229,8 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
       [...bubs.children].forEach((b, j) => b.classList.toggle("on", j === i % 4)); i++;
       const s = Math.round((Date.now() - t0) / 1000);
       if (retryNote) $("#prepMsg").textContent = retryNote;
-      else if (s >= 6) $("#prepMsg").textContent = "New topic? The AI is writing fresh questions. This takes up to a minute, only for the first person.";
-      $("#prepTime").textContent = s >= 3 ? `${s} seconds` : "";
+      else if (s >= 6) $("#prepMsg").textContent = t("prep.new", { lang: langName(body.lang) });
+      $("#prepTime").textContent = s >= 3 ? t("prep.seconds", { n: s }) : "";
     }, 700);
     try {
       let paper;
@@ -1109,13 +1239,14 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
         catch (err) {
           if (err.status !== 429 || attempt >= 5) throw err;
           for (let left = 25; left > 0; left--) {
-            retryNote = `Many people are starting at the same time. Trying again in ${left} seconds. Keep this page open.`;
+            retryNote = t("prep.busy", { n: left });
             await new Promise(r => setTimeout(r, 1000));
           }
-          retryNote = "Trying again…";
+          retryNote = t("prep.retrying");
         }
       }
       paper.empName = body.empName; paper.empId = body.empId;
+      paper.lang = paper.lang || body.lang;
       paper.deadline = Date.now() + paper.timeLimitSeconds * 1000;
       store.set("active", { paper, answers: {}, warnings: 0 });
       loadAi();
@@ -1129,12 +1260,17 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
   }
 
   // ---------- exam ----------
+  function quizHeader() {
+    const p = state.paper;
+    $("#quizTitle").textContent = p.topic;
+    $("#quizWho").textContent = [lvl(p.level), langName(p.lang), p.empName].filter(Boolean).join(" · ");
+  }
   function beginQuiz(paper, answers, warnings, saved = {}) {
     Object.assign(state, { paper, answers, idx: 0, deadline: paper.deadline, inQuiz: true, warnings: warnings || 0,
       times: saved.times || {}, changes: saved.changes || {}, qStart: Date.now() });
     document.body.classList.add("testing");
-    $("#quizTitle").textContent = paper.topic;
-    $("#quizWho").textContent = `${LEVEL_NAME[paper.level] || paper.level}${paper.empName ? " · " + paper.empName : ""}`;
+    $("#qcard").setAttribute("lang", paper.lang || "en");
+    quizHeader();
     $("#segs").replaceChildren(...paper.questions.map(() => el("span")));
     buildGrid($("#sideGrid")); buildGrid($("#sheetGrid"));
     show("quiz");
@@ -1143,7 +1279,7 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
     lock.armed = true;
   }
   function buildGrid(box) {
-    box.replaceChildren(...state.paper.questions.map((q, i) => el("button", { type: "button", "aria-label": `Question ${i + 1}`,
+    box.replaceChildren(...state.paper.questions.map((q, i) => el("button", { type: "button",
       onclick: () => { go(i); $("#gridDlg").open && $("#gridDlg").close(); } }, i + 1)));
   }
   function answeredCount() { return state.paper.questions.filter(q => state.answers[q.itemId] != null).length; }
@@ -1154,16 +1290,16 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
       [...box.children].forEach((b, i) => {
         const a = state.answers[qs[i].itemId];
         b.className = (a != null ? "done " : "") + (i === state.idx ? "cur" : "");
-        b.setAttribute("aria-label", `Question ${i + 1}, ${a != null ? "answered " + LETTERS[a] : "not answered"}`);
+        b.setAttribute("aria-label", a != null ? t("exam.qAnswered", { i: i + 1, l: LETTERS[a] }) : t("exam.qBlank", { i: i + 1 }));
       });
     }
     $("#gridTxt").textContent = `${done}/${n}`;
-    $("#sideProgress").textContent = `${done} of ${n} answered`;
-    $("#gridProgress").textContent = `${done} of ${n} answered. Tap a number to jump to it.`;
+    $("#sideProgress").textContent = t("exam.answeredOf", { done, n });
+    $("#gridProgress").textContent = t("exam.gridHint", { done, n });
   }
   function renderQ(dir) {
     const qs = state.paper.questions, q = qs[state.idx];
-    $("#qNum").textContent = `Question ${state.idx + 1} of ${qs.length}`;
+    $("#qNum").textContent = t("exam.qOf", { i: state.idx + 1, n: qs.length });
     $("#qText").replaceChildren(rich(q.text));
     const box = $("#qOpts"); box.replaceChildren();
     q.options.forEach((o, j) => {
@@ -1173,7 +1309,7 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
     });
     const last = state.idx === qs.length - 1;
     $("#prevBtn").disabled = state.idx === 0;
-    $("#nextBtn").textContent = last ? "Finish" : "Next";
+    $("#nextBtn").textContent = last ? t("exam.finish") : t("exam.next");
     $("#nextBtn").classList.toggle("accent", last);
     const card = $("#qcard");
     card.classList.remove("enter-r", "enter-l");
@@ -1227,10 +1363,10 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
   (function swipe() {
     let x0 = null, y0 = 0, t0 = 0;
     const area = $("#v-quiz");
-    area.addEventListener("touchstart", e => { const t = e.touches[0]; x0 = t.clientX; y0 = t.clientY; t0 = Date.now(); }, { passive: true });
+    area.addEventListener("touchstart", e => { const tc = e.touches[0]; x0 = tc.clientX; y0 = tc.clientY; t0 = Date.now(); }, { passive: true });
     area.addEventListener("touchend", e => {
       if (x0 == null) return;
-      const t = e.changedTouches[0], dx = t.clientX - x0, dy = t.clientY - y0;
+      const tc = e.changedTouches[0], dx = tc.clientX - x0, dy = tc.clientY - y0;
       x0 = null;
       if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.6 && Date.now() - t0 < 600) {
         go(state.idx + (dx < 0 ? 1 : -1));
@@ -1243,16 +1379,14 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
     const left = Math.round((state.deadline - Date.now()) / 1000);
     $("#timerTxt").textContent = mmss(Math.max(0, left));
     $("#timer").classList.toggle("low", left <= 60);
-    if (left === 300) toast("5 minutes left");
-    if (left === 60) toast("1 minute left");
-    if (left <= 0) { clearInterval(state.timerId); toast("Time's up. Submitting your answers."); finish("TIMEOUT"); }
+    if (left === 300) toast(t("exam.5min"));
+    if (left === 60) toast(t("exam.1min"));
+    if (left <= 0) { clearInterval(state.timerId); toast(t("exam.timeUp")); finish("TIMEOUT"); }
   }
 
   function askSubmit() {
     const blank = state.paper.questions.length - answeredCount();
-    $("#subMsg").textContent = blank
-      ? `${blank} question${blank > 1 ? "s are" : " is"} still unanswered and will get zero marks. You can't change answers after submitting.`
-      : "All questions answered. You can't change answers after submitting.";
+    $("#subMsg").textContent = blank ? t("submit.blank", { n: blank }) : t("submit.all");
     $("#submitDlg").showModal();
   }
   $("#subCancel").addEventListener("click", () => $("#submitDlg").close());
@@ -1291,7 +1425,7 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
     let done = false;
     for (let i = 0; i < waits.length && !done; i++) {
       if (waits[i]) {
-        if (!$("#v-prep").hidden) $("#prepTime").textContent = `Waiting for the server… (try ${i + 1} of ${waits.length})`;
+        if (!$("#v-prep").hidden) $("#prepTime").textContent = t("prep.waitServer", { i: i + 1, n: waits.length });
         await new Promise(r => setTimeout(r, waits[i] * 1000));
       }
       try {
@@ -1303,7 +1437,7 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
       } catch (err) {
         if (err.status === 404 || err.status === 400) {
           // the server doesn't have this test any more (e.g. results were deleted by admin)
-          discardActive("Your earlier test could not be found on the server, so it was cleared. You can start a new test.");
+          discardActive(t("prep.notFound"));
           done = true;
         }
       }
@@ -1313,8 +1447,8 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
       document.body.classList.add("testing");
       show("prep");
       $("#prepBubbles").replaceChildren();
-      $("#prepTitle").textContent = "Couldn't submit right now";
-      $("#prepMsg").textContent = "The server is not responding. Your answers are saved on this phone. Check your internet and try again.";
+      $("#prepTitle").textContent = t("prep.failTitle");
+      $("#prepMsg").textContent = t("prep.failMsg");
       $("#prepTime").textContent = "";
       $("#prepActions").hidden = false;
     }
@@ -1323,11 +1457,11 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
   }
   $("#prepRetry").addEventListener("click", () => {
     const a = store.get("active");
-    $("#prepTitle").textContent = "Submitting your test"; $("#prepMsg").textContent = "";
+    $("#prepTitle").textContent = t("prep.submitting"); $("#prepMsg").textContent = "";
     finish((a && a.ended) || "MANUAL");
   });
   $("#prepLeave").addEventListener("click", () => {
-    if (confirm("Leave without submitting? This test will not be counted.")) discardActive("Saved test cleared.");
+    if (confirm(t("prep.leaveConfirm"))) discardActive(t("prep.cleared"));
   });
 
   // ---------- exam lock (anti-cheat) ----------
@@ -1342,10 +1476,8 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
     if (!lock.armed || submitting) return;
     if (reason === "TAB_SWITCH" && state.warnings < LEAVE_WARNINGS) {
       state.warnings++; saveActive();
-      const left = LEAVE_WARNINGS - state.warnings;
-      $("#warnMsg").textContent = left > 0
-        ? `This is warning ${state.warnings}. You can leave ${left} more time${left > 1 ? "s" : ""}; after that your test is submitted.`
-        : "This was your last warning. If you leave the exam screen again, your test is submitted.";
+      $("#warnMsg").textContent = state.warnings < LEAVE_WARNINGS
+        ? t("warn.msg", { w: state.warnings, max: LEAVE_WARNINGS }) : t("warn.last");
       if (!$("#warnDlg").open) $("#warnDlg").showModal();
       return;
     }
@@ -1386,12 +1518,9 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
 
   // ---------- result ----------
   function verdict(p) {
-    if (p >= 90) return "Outstanding.";
-    if (p >= 75) return "Strong result.";
-    if (p >= 50) return "Good base, a few gaps to close.";
-    if (p >= 30) return "Worth revising this topic.";
-    return "Start with the basics and try again.";
+    return t(p >= 90 ? "res.v90" : p >= 75 ? "res.v75" : p >= 50 ? "res.v50" : p >= 30 ? "res.v30" : "res.v0");
   }
+  const endTagText = reason => I18N.has("tag." + reason) && reason ? t("tag." + reason) : t("tag.MANUAL");
   let reviewFilter = "all";
   function showResult(r) {
     state.lastResult = r;
@@ -1400,44 +1529,50 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
     fg.style.strokeDasharray = C; fg.style.strokeDashoffset = C;
     $("#ring").className = "ring " + (r.percentage >= 60 ? "good" : r.percentage < 35 ? "bad" : "");
     requestAnimationFrame(() => requestAnimationFrame(() => { fg.style.strokeDashoffset = C * (1 - r.percentage / 100); }));
-    $("#rPct").textContent = Math.round(r.percentage) + "%";
-    $("#rScore").textContent = `${r.score} of ${r.total} correct`;
-    $("#rHeadline").textContent = `${r.topic}: ${verdict(r.percentage)}`;
-    const why = END_TEXT[r.endReason];
-    $("#rBanner").hidden = !why; $("#rBannerTxt").textContent = why || "";
-    $("#rRank").textContent = r.rank ? `#${r.rank}` : "–";
-    $("#rRankOf").textContent = r.rank ? `of ${r.rankOutOf} in this topic` : "rank";
-    $("#rTime").textContent = fmtDur(r.durationSeconds);
-    $("#rLevel").textContent = LEVEL_NAME[r.level] || r.level;
-    $("#rDetails").replaceChildren(
-      kv("Name", `${r.empName} (${r.empId})`),
-      kv("Result", r.passed ? `Pass (${r.passPercent}% needed)` : `Fail (${r.passPercent}% needed)`),
-      kv("Correct", r.score), kv("Wrong", r.wrong ?? "–"),
-      kv("Not answered", r.skipped ?? "–"), kv("Ended", END_TAG[r.endReason] || "Submitted"),
-      kv("Started", fmtDate(r.startedAt)), kv("Finished", fmtDate(r.submittedAt)));
+    renderResult(r);
     setFilter("all");
+  }
+  function renderResult(r) {
+    $("#rPct").textContent = Math.round(r.percentage) + "%";
+    $("#rScore").textContent = t("res.correctOf", { s: r.score, n: r.total });
+    $("#rHeadline").textContent = t("res.headline", { topic: r.topic, verdict: verdict(r.percentage) });
+    const why = r.endReason && AUTO.has(r.endReason) || r.endReason === "TIMEOUT" ? t("end." + r.endReason) : "";
+    $("#rBanner").hidden = !why; $("#rBannerTxt").textContent = why;
+    $("#rRank").textContent = r.rank ? `#${r.rank}` : "–";
+    $("#rRankOf").textContent = r.rank ? t("res.rankOf", { n: r.rankOutOf }) : t("res.rank");
+    $("#rTime").textContent = fmtDur(r.durationSeconds);
+    $("#rLevel").textContent = lvl(r.level);
+    $("#rDetails").replaceChildren(
+      kv(t("k.name"), `${r.empName} (${r.empId})`),
+      kv(t("k.result"), t(r.passed ? "k.passNeed" : "k.failNeed", { p: r.passPercent })),
+      kv(t("k.correct"), r.score), kv(t("k.wrong"), r.wrong ?? "–"),
+      kv(t("k.notAnswered"), r.skipped ?? "–"), kv(t("k.ended"), endTagText(r.endReason)),
+      kv(t("k.started"), fmtDate(r.startedAt)), kv(t("k.finished"), fmtDate(r.submittedAt)),
+      kv(t("k.language"), langName(r.lang)), kv(t("d.topic"), r.topic));
+    $("#rReview").setAttribute("lang", r.lang || "en");
+    renderReview();
   }
   function renderReview() {
     const r = state.lastResult; if (!r) return;
     const items = r.review.filter(it => reviewFilter === "all" || (reviewFilter === "right" ? it.isCorrect : !it.isCorrect));
     const box = $("#rReview");
-    if (!items.length) { box.replaceChildren(el("div", { class: "card empty" }, reviewFilter === "wrong" ? "No wrong answers. Nice work." : "Nothing to show.")); return; }
+    if (!items.length) { box.replaceChildren(el("div", { class: "card empty" }, reviewFilter === "wrong" ? t("res.noWrong") : t("res.nothing"))); return; }
     box.replaceChildren(...items.map(it => el("article", { class: "rv card" + (it.isCorrect ? "" : " wrong") },
-      el("div", { class: "qnum" }, `Question ${it.number}` + (it.selected == null ? ", not answered" : it.isCorrect ? ", correct" : ", wrong")),
+      el("div", { class: "qnum", lang: I18N.lang }, t("res.qState", { i: it.number, state: t(it.selected == null ? "st.notAnswered" : it.isCorrect ? "st.correct" : "st.wrong") })),
       el("div", { class: "qtext" }, rich(it.text)),
       it.options.map((o, j) => {
         const mine = it.selected === j, right = it.correct === j;
         return el("div", { class: "rv-opt" }, bubble(LETTERS[j], right ? "good" + (mine ? " on" : "") : mine ? "on bad" : ""), el("span", {}, rich(o)),
-          right ? el("span", { class: "tag ok" }, "Correct") : mine ? el("span", { class: "tag no" }, "Your answer") : null);
+          right ? el("span", { class: "tag ok", lang: I18N.lang }, t("res.tagCorrect")) : mine ? el("span", { class: "tag no", lang: I18N.lang }, t("res.tagYours")) : null);
       }),
       it.explanation ? el("p", { class: "exp" }, rich(it.explanation)) : null)));
   }
   function setFilter(f) {
     reviewFilter = f;
-    document.querySelectorAll(".pills button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.f === f)));
+    $$(".pills button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.f === f)));
     renderReview();
   }
-  document.querySelectorAll(".pills button").forEach(b => b.addEventListener("click", () => setFilter(b.dataset.f)));
+  $$(".pills button").forEach(b => b.addEventListener("click", () => setFilter(b.dataset.f)));
   $("#rBoardBtn").addEventListener("click", () => {
     const r = state.lastResult;
     if (r) { $("#bTopic").value = r.topic; $("#bLevel").value = r.level; }
@@ -1447,18 +1582,19 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
   // ---------- lists ----------
   function scoreCell(score, total, pct, passed) {
     return el("div", { class: "score" }, el("b", {}, `${score}/${total}`), el("small", {}, `${pct}%`),
-      passed == null ? null : el("div", {}, el("span", { class: "tag " + (passed ? "pass" : "fail"), style: "margin:4px 0 0;display:inline-block" }, passed ? "Pass" : "Fail")));
+      passed == null ? null : el("div", {}, el("span", { class: "tag " + (passed ? "pass" : "fail"), style: "margin:4px 0 0;display:inline-block" }, t(passed ? "pass" : "fail"))));
   }
-  function loading(box) { box.replaceChildren(el("div", { class: "empty" }, "Loading…")); }
-  /** "✓ 16  ✗ 3  – 1  12m 30s" */
+  function loading(box) { box.replaceChildren(el("div", { class: "empty" }, t("list.loading"))); }
+  /** "✓ 16  ✗ 3  – 1 skipped  ⏱ 12m 30s" */
   function metaLine(r, extra = []) {
     return el("div", { class: "meta" },
-      el("span", { class: "c" }, `✓ ${r.score}`), el("span", { class: "w" }, `✗ ${r.wrong}`), el("span", {}, `– ${r.skipped} skipped`),
+      el("span", { class: "c" }, `✓ ${r.score}`), el("span", { class: "w" }, `✗ ${r.wrong}`), el("span", {}, "– " + t("meta.skipped", { n: r.skipped })),
       el("span", {}, `⏱ ${fmtDur(r.durationSeconds)}`), ...extra);
   }
   function endTag(reason) {
-    return END_TAG[reason] ? el("span", { class: "tag " + (reason === "TIMEOUT" ? "warn" : "no") }, END_TAG[reason]) : null;
+    return AUTO.has(reason) || reason === "TIMEOUT" ? el("span", { class: "tag " + (reason === "TIMEOUT" ? "warn" : "no") }, t("tag." + reason)) : null;
   }
+  const subLine = r => [r.topic, lvl(r.level), r.lang && r.lang !== "en" ? langName(r.lang) : null, r.department].filter(Boolean).join(", ");
 
   $("#boardForm").addEventListener("submit", e => { e.preventDefault(); loadBoard(); });
   ["#bLevel", "#bDays", "#bBest"].forEach(id => $(id).addEventListener("change", () => loadBoard()));
@@ -1470,39 +1606,49 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
     if ($("#bDays").value) p.set("days", $("#bDays").value);
     try {
       const rows = await api("/api/leaderboard?" + p);
-      if (!rows.length) { box.replaceChildren(el("div", { class: "empty" }, "No results yet for this filter. Be the first to take the test.")); return; }
+      if (!rows.length) { box.replaceChildren(el("div", { class: "empty" }, t("board.empty"))); return; }
       box.replaceChildren(...rows.map(r => el("div", { class: "li" },
         el("span", { class: "rank" + (r.rank <= 3 ? " r" + r.rank : "") }, r.rank),
         el("div", { class: "who" },
           el("b", {}, `${r.empName} (${r.empId})`),
-          el("small", {}, [r.topic, LEVEL_NAME[r.level], r.department].filter(Boolean).join(", ")),
+          el("small", {}, subLine(r)),
           metaLine(r),
-          el("div", { class: "meta" }, el("span", {}, fmtRange(r.startedAt, r.submittedAt))),
+          el("div", { class: "meta" }, el("span", { class: "rng" }, fmtRange(r.startedAt, r.submittedAt))),
           endTag(r.endReason) ? el("div", { class: "tags" }, endTag(r.endReason)) : null),
         scoreCell(r.score, r.total, r.percentage, r.passed))));
     } catch (err) { box.replaceChildren(el("div", { class: "empty" }, err.message)); }
   }
 
+  let mineRows = null;
   $("#mineForm").addEventListener("submit", async e => {
     e.preventDefault();
     const id = $("#mEmp").value.trim(), box = $("#mineList"); loading(box);
     try {
-      const rows = await api(`/api/employees/${encodeURIComponent(id)}/history`);
-      if (!rows.length) { box.replaceChildren(el("div", { class: "empty" }, "No submitted tests for this employee ID yet.")); return; }
-      box.replaceChildren(...rows.map(r => el("button", { class: "li", type: "button", onclick: () => openResult(r.attemptId) },
-        el("span", { class: "rank" }, LEVEL_NAME[r.level].charAt(0)),
-        el("div", { class: "who" }, el("b", {}, r.topic), el("small", {}, LEVEL_NAME[r.level]),
-          metaLine(r),
-          el("div", { class: "meta" }, el("span", {}, fmtRange(r.startedAt, r.submittedAt))),
-          endTag(r.endReason) ? el("div", { class: "tags" }, endTag(r.endReason)) : null),
-        scoreCell(r.score, r.total, r.percentage, r.passed))));
-    } catch (err) { box.replaceChildren(el("div", { class: "empty" }, err.message)); }
+      mineRows = await api(`/api/employees/${encodeURIComponent(id)}/history`);
+      renderMine(mineRows);
+    } catch (err) { mineRows = null; box.replaceChildren(el("div", { class: "empty" }, err.message)); }
   });
+  function renderMine(rows) {
+    const box = $("#mineList");
+    if (!rows.length) { box.replaceChildren(el("div", { class: "empty" }, t("mine.empty"))); return; }
+    box.replaceChildren(...rows.map(r => el("button", { class: "li", type: "button", onclick: () => openResult(r.attemptId) },
+      el("span", { class: "rank" }, (r.topic || "?").charAt(0).toUpperCase()),
+      el("div", { class: "who" }, el("b", {}, r.topic), el("small", {}, [lvl(r.level), langName(r.lang)].filter(Boolean).join(", ")),
+        metaLine(r),
+        el("div", { class: "meta" }, el("span", { class: "rng" }, fmtRange(r.startedAt, r.submittedAt))),
+        endTag(r.endReason) ? el("div", { class: "tags" }, endTag(r.endReason)) : null),
+      scoreCell(r.score, r.total, r.percentage, r.passed))));
+  }
   async function openResult(id) { try { showResult(await api(`/api/quiz/${id}/result`)); } catch (err) { toast(err.message); } }
 
   // ---------- admin ----------
   let adminKey = "";
   const adminHeaders = () => ({ "X-Admin-Key": adminKey });
+  const langOptions = () => I18N.QUESTION_LANGS.map(l => el("option", { value: l.code }, l.label));
+  $("#fLang").append(...langOptions());
+  $("#qLang").append(...langOptions());
+  $("#prepLangs").append(...I18N.QUESTION_LANGS.map(l => el("label", {},
+    el("input", { type: "checkbox", value: l.code, checked: l.code === "en" }), " " + l.label.split(" (")[0])));
   $("#adminLogin").addEventListener("submit", async e => {
     e.preventDefault();
     adminKey = $("#aKey").value;
@@ -1510,7 +1656,7 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
       await api("/api/admin/check", { headers: adminHeaders() });
       $("#adminBody").hidden = false; $("#adminLogin").hidden = true;
       loadAdmin(); loadAi();
-    } catch (err) { toast(err.message); }
+    } catch (err) { adminKey = ""; toast(err.message); }
   });
   $("#aRefresh").addEventListener("click", () => { loadAdmin(); loadAi(); });
   let adminRows = [];
@@ -1520,19 +1666,19 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
       adminRows = await api("/api/admin/attempts?limit=1000", { headers: adminHeaders() });
       const topics = [...new Set(adminRows.map(r => r.topic))].sort();
       const cur = $("#fTopic").value;
-      $("#fTopic").replaceChildren(el("option", { value: "" }, "All topics"), ...topics.map(t => el("option", { value: t }, t)));
+      $("#fTopic").replaceChildren(el("option", { value: "", "data-i18n": "f.allTopics" }, t("f.allTopics")), ...topics.map(tp => el("option", { value: tp }, tp)));
       $("#fTopic").value = topics.includes(cur) ? cur : "";
       renderAdmin();
     } catch (err) { box.replaceChildren(el("div", { class: "empty" }, err.message)); }
   }
-  const AUTO = new Set(["TAB_SWITCH", "COPY", "CLOSED"]);
   function adminFiltered() {
-    const q = $("#fSearch").value.trim().toLowerCase(), st = $("#fStatus").value, tp = $("#fTopic").value;
+    const q = $("#fSearch").value.trim().toLowerCase(), st = $("#fStatus").value, tp = $("#fTopic").value, lg = $("#fLang").value;
     const from = $("#fFrom").value ? new Date($("#fFrom").value + "T00:00:00") : null;
     const to = $("#fTo").value ? new Date($("#fTo").value + "T23:59:59") : null;
     return adminRows.filter(r => {
       if (q && ![r.empName, r.empId, r.department].some(v => (v || "").toLowerCase().includes(q))) return false;
       if (tp && r.topic !== tp) return false;
+      if (lg && (r.lang || "en") !== lg) return false;
       const started = new Date(r.startedAt);
       if (from && started < from) return false;
       if (to && started > to) return false;
@@ -1551,78 +1697,79 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
   function renderAdmin() {
     const rows = adminFiltered(), done = rows.filter(r => r.status === "SUBMITTED");
     const avg = (xs, f) => xs.length ? xs.reduce((a, x) => a + f(x), 0) / xs.length : 0;
-    const tile = (v, label) => el("div", { class: "tile" }, el("b", {}, v), el("span", {}, label));
+    const tile = (v, label) => el("div", { class: "tile" }, el("b", {}, v), el("span", {}, t(label)));
     $("#aSummary").replaceChildren(
-      tile(rows.length, "tests started"),
-      tile(done.length, "submitted"),
-      tile(done.length ? Math.round(avg(done, r => r.percentage)) + "%" : "–", "average score"),
-      tile(done.length ? Math.round(done.filter(r => r.passed).length * 100 / done.length) + "%" : "–", "pass rate"),
-      tile(done.filter(r => AUTO.has(r.endReason)).length, "auto-submitted"),
-      tile(done.length ? fmtDur(Math.round(avg(done, r => r.durationSeconds))) : "–", "average time"),
-      tile(rows.filter(r => r.status === "IN_PROGRESS").length, "in progress now"),
-      tile(rows.filter(r => r.status === "ABANDONED").length, "started, not submitted"));
-    $("#aCount").textContent = rows.length === adminRows.length ? `${rows.length} tests` : `Showing ${rows.length} of ${adminRows.length} tests`;
+      tile(rows.length, "tile.started"),
+      tile(done.length, "tile.submitted"),
+      tile(done.length ? Math.round(avg(done, r => r.percentage)) + "%" : "–", "tile.avg"),
+      tile(done.length ? Math.round(done.filter(r => r.passed).length * 100 / done.length) + "%" : "–", "tile.pass"),
+      tile(done.filter(r => AUTO.has(r.endReason)).length, "tile.auto"),
+      tile(done.length ? fmtDur(Math.round(avg(done, r => r.durationSeconds))) : "–", "tile.avgTime"),
+      tile(rows.filter(r => r.status === "IN_PROGRESS").length, "tile.inProg"),
+      tile(rows.filter(r => r.status === "ABANDONED").length, "tile.aband"));
+    $("#aCount").textContent = rows.length === adminRows.length ? t("adm.count", { n: rows.length }) : t("adm.showing", { n: rows.length, total: adminRows.length });
     const box = $("#adminList");
-    if (!rows.length) { box.replaceChildren(el("div", { class: "empty" }, adminRows.length ? "No tests match these filters." : "No tests yet.")); return; }
+    if (!rows.length) { box.replaceChildren(el("div", { class: "empty" }, t(adminRows.length ? "adm.noMatch" : "adm.none"))); return; }
     box.replaceChildren(...rows.slice(0, 300).map(r => {
-      const doneRow = r.status === "SUBMITTED", st = STATUS_TAG[r.status];
+      const doneRow = r.status === "SUBMITTED";
       return el("button", { class: "li", type: "button", onclick: () => openAttempt(r.attemptId) },
         el("span", { class: "rank" }, (r.empName || "?").charAt(0).toUpperCase()),
         el("div", { class: "who" },
           el("b", {}, `${r.empName} (${r.empId})`),
-          el("small", {}, [r.topic, LEVEL_NAME[r.level], r.department].filter(Boolean).join(", ")),
-          doneRow ? metaLine(r) : el("div", { class: "meta" }, el("span", {}, `${r.answered || 0} of ${r.total} answered so far`)),
-          el("div", { class: "meta" }, el("span", {}, fmtRange(r.startedAt, r.submittedAt)), r.device ? el("span", {}, `📱 ${r.device}${r.installedApp ? ", app" : ""}`) : null),
-          el("div", { class: "tags" }, st ? el("span", { class: "tag " + st[1] }, st[0]) : null, doneRow ? endTag(r.endReason) : null,
-            r.warnings ? el("span", { class: "tag warn" }, `${r.warnings} warning${r.warnings > 1 ? "s" : ""}`) : null)),
-        doneRow ? scoreCell(r.score, r.total, r.percentage, r.passed) : el("div", { class: "score" }, el("b", {}, "–"), el("small", {}, `${r.total} Q`)));
+          el("small", {}, [r.topic, lvl(r.level), langName(r.lang), r.department].filter(Boolean).join(", ")),
+          doneRow ? metaLine(r) : el("div", { class: "meta" }, el("span", {}, t("adm.soFar", { a: r.answered || 0, n: r.total }))),
+          el("div", { class: "meta" }, el("span", { class: "rng" }, fmtRange(r.startedAt, r.submittedAt)), r.device ? el("span", {}, `📱 ${r.device}${r.installedApp ? ", " + t("adm.app") : ""}`) : null),
+          el("div", { class: "tags" }, statusTag(r.status), doneRow ? endTag(r.endReason) : null,
+            r.warnings ? el("span", { class: "tag warn" }, t("adm.warnings", { n: r.warnings })) : null)),
+        doneRow ? scoreCell(r.score, r.total, r.percentage, r.passed) : el("div", { class: "score" }, el("b", {}, "–"), el("small", {}, t("adm.q", { n: r.total }))));
     }));
-    if (rows.length > 300) box.append(el("div", { class: "empty" }, `Showing the first 300. Use the filters or download the CSV for all ${rows.length}.`));
+    if (rows.length > 300) box.append(el("div", { class: "empty" }, t("adm.first300", { n: rows.length })));
   }
-  ["#fSearch", "#fStatus", "#fTopic", "#fFrom", "#fTo"].forEach(id => $(id).addEventListener("input", renderAdmin));
+  ["#fSearch", "#fStatus", "#fTopic", "#fLang", "#fFrom", "#fTo"].forEach(id => $(id).addEventListener("input", renderAdmin));
   $("#aFilter").addEventListener("submit", e => e.preventDefault());
 
   async function openAttempt(id) {
     const body = $("#atBody");
-    body.replaceChildren(el("div", { class: "empty" }, "Loading…"));
-    $("#atTitle").textContent = "Test details";
+    body.replaceChildren(el("div", { class: "empty" }, t("list.loading")));
+    $("#atTitle").textContent = t("d.title");
     $("#attemptDlg").showModal();
     try {
       const d = await api(`/api/admin/attempts/${encodeURIComponent(id)}`, { headers: adminHeaders() });
       const r = d.row, doneRow = r.status === "SUBMITTED";
       $("#atTitle").textContent = `${r.empName} (${r.empId})`;
-      const statusText = doneRow ? "Submitted" : (STATUS_TAG[r.status] || ["–"])[0];
+      const statusText = doneRow ? t("st.SUBMITTED") : (STATUS_CLS[r.status] ? t("st." + r.status) : "–");
       const timed = d.review.filter(q => q.timeSpentSeconds != null);
-      const slowest = [...timed].sort((a, b) => b.timeSpentSeconds - a.timeSpentSeconds).slice(0, 3).map(q => q.number);
+      const slowest = [...timed].sort((a, b) => b.timeSpentSeconds - a.timeSpentSeconds).slice(0, 3).map(q => "Q" + q.number);
       body.replaceChildren(
         el("dl", { class: "kv full" },
-          kv("Employee ID", r.empId), kv("Name", r.empName), kv("Team", r.department || "–"),
-          kv("Topic", r.topic), kv("Level", LEVEL_NAME[r.level]), kv("Status", statusText),
-          kv("Score", doneRow ? `${r.score}/${r.total} (${r.percentage}%)` : "–"),
-          kv("Result", doneRow ? (r.passed ? "Pass" : "Fail") : "–"),
-          kv("Correct / wrong / skipped", doneRow ? `${r.score} / ${r.wrong} / ${r.skipped}` : `${r.answered || 0} answered`),
-          kv("Rank in topic", d.rank ? `#${d.rank} of ${d.rankOutOf}` : "–"),
-          kv("Started", fmtDate(r.startedAt)), kv("Finished", r.submittedAt ? fmtDate(r.submittedAt) : "Not finished"),
-          kv("Time taken", doneRow ? fmtDur(r.durationSeconds) : "–"), kv("Time limit", `${Math.round(r.timeLimitSeconds / 60)} min`),
-          kv("How it ended", doneRow ? (END_TAG[r.endReason] || "Submitted by employee") : "–"),
-          kv("Leave warnings used", r.warnings || 0),
-          kv("Device", r.device || "–"), kv("Opened from", r.installedApp == null ? "–" : r.installedApp ? "Installed app" : "Browser"),
-          kv("Attempt ID", r.attemptId)),
-        d.userAgent ? el("p", { class: "ua" }, "Browser details: " + d.userAgent) : null,
-        el("h3", { style: "margin:18px 0 6px;font-size:1.05rem" }, "Question by question"),
+          kv(t("d.id"), r.empId), kv(t("k.name"), r.empName), kv(t("d.team"), r.department || "–"),
+          kv(t("d.topic"), r.topic), kv(t("d.level"), lvl(r.level)), kv(t("k.language"), langName(r.lang)),
+          kv(t("d.status"), statusText),
+          kv(t("d.score"), doneRow ? `${r.score}/${r.total} (${r.percentage}%)` : "–"),
+          kv(t("k.result"), doneRow ? t(r.passed ? "pass" : "fail") : "–"),
+          kv(t("d.cws"), doneRow ? `${r.score} / ${r.wrong} / ${r.skipped}` : t("d.answered", { n: r.answered || 0 })),
+          kv(t("d.rank"), d.rank ? t("d.rankVal", { r: d.rank, n: d.rankOutOf }) : "–"),
+          kv(t("k.started"), fmtDate(r.startedAt)), kv(t("k.finished"), r.submittedAt ? fmtDate(r.submittedAt) : t("d.notFinished")),
+          kv(t("d.timeTaken"), doneRow ? fmtDur(r.durationSeconds) : "–"), kv(t("d.limit"), t("d.minutes", { n: Math.round(r.timeLimitSeconds / 60) })),
+          kv(t("d.how"), doneRow ? (AUTO.has(r.endReason) || r.endReason === "TIMEOUT" ? t("tag." + r.endReason) : t("d.byPerson")) : "–"),
+          kv(t("d.warnings"), r.warnings || 0),
+          kv(t("d.device"), r.device || "–"), kv(t("d.from"), r.installedApp == null ? "–" : t(r.installedApp ? "d.app" : "d.browser")),
+          kv(t("d.attemptId"), r.attemptId)),
+        d.userAgent ? el("p", { class: "ua" }, t("d.ua", { ua: d.userAgent })) : null,
+        el("h3", { style: "margin:18px 0 6px;font-size:1.05rem" }, t("d.qbyq")),
         timed.length ? el("p", { class: "muted", style: "margin:0 0 6px;font-size:.86rem" },
-          `Average ${fmtDur(Math.round(timed.reduce((a, q) => a + q.timeSpentSeconds, 0) / timed.length))} per question. Longest: Q${slowest.join(", Q")}.`) : null,
+          t("d.avg", { t: fmtDur(Math.round(timed.reduce((a, q) => a + q.timeSpentSeconds, 0) / timed.length)), list: slowest.join(", ") })) : null,
         ...d.review.map(q => {
-          const mine = q.selected == null ? "Not answered" : `${LETTERS[q.selected]}. ${q.options[q.selected]}`;
+          const mine = q.selected == null ? t("st.notAnswered") : `${LETTERS[q.selected]}. ${q.options[q.selected]}`;
           const right = `${LETTERS[q.correct]}. ${q.options[q.correct]}`;
           return el("div", { class: "at-q" + (q.isCorrect ? " ok" : "") },
             el("div", { class: "top" },
-              el("b", {}, `Q${q.number} ${q.selected == null ? "skipped" : q.isCorrect ? "correct" : "wrong"}`),
+              el("b", {}, t("d.qstate", { i: q.number, state: t(q.selected == null ? "st.notAnswered" : q.isCorrect ? "st.correct" : "st.wrong") })),
               el("span", {}, [q.timeSpentSeconds != null ? `⏱ ${fmtDur(q.timeSpentSeconds)}` : null,
-                q.answerChanges ? `changed ${q.answerChanges}×` : null].filter(Boolean).join("   "))),
-            el("div", { class: "txt" }, rich(q.text)),
-            el("div", { class: "ans" }, "Answer: ", rich(mine)),
-            q.isCorrect ? null : el("div", { class: "ans", style: "color:var(--good)" }, "Correct: ", rich(right)));
+                q.answerChanges ? t("d.changed", { n: q.answerChanges }) : null].filter(Boolean).join("   "))),
+            el("div", { class: "txt", lang: r.lang || "en" }, rich(q.text)),
+            el("div", { class: "ans" }, t("d.answer"), rich(mine)),
+            q.isCorrect ? null : el("div", { class: "ans", style: "color:var(--good)" }, t("d.correct"), rich(right)));
         }));
     } catch (err) { body.replaceChildren(el("div", { class: "empty" }, err.message)); }
   }
@@ -1630,7 +1777,7 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
   $("#csvBtn").addEventListener("click", async () => {
     try {
       const res = await fetch(API + "/api/admin/attempts.csv", { headers: adminHeaders() });
-      if (!res.ok) throw new Error("Download failed (" + res.status + ")");
+      if (!res.ok) throw new Error(t("csv.fail", { s: res.status }));
       const a = el("a", { href: URL.createObjectURL(await res.blob()), download: `skillquiz-results-${new Date().toISOString().slice(0, 10)}.csv` });
       document.body.append(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(a.href), 5000);
@@ -1638,50 +1785,55 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
   });
   $("#prepForm").addEventListener("submit", async e => {
     e.preventDefault();
-    const topics = [...new Set($("#prepTopics").value.split(/[\n,]+/).map(t => t.trim()).filter(Boolean))];
-    const levels = [...document.querySelectorAll("#prepLevels input:checked")].map(c => c.value);
+    const topics = [...new Set($("#prepTopics").value.split(/[\n,]+/).map(x => x.trim()).filter(Boolean))];
+    const levels = $$("#prepLevels input:checked").map(c => c.value);
+    const langs = $$("#prepLangs input:checked").map(c => c.value);
     const log = $("#prepLog"); log.replaceChildren();
-    if (!topics.length || !levels.length) { toast("Add at least one topic and one level."); return; }
+    if (!topics.length || !levels.length || !langs.length) { toast(t("prepT.need")); return; }
     const btn = $("#prepGo"); btn.disabled = true;
     outer: for (const topic of topics) {
       for (const level of levels) {
-        const li = el("li", {}, `${topic}, ${LEVEL_NAME[level]}: preparing…`); log.append(li);
-        btn.textContent = `Preparing ${topic}…`;
-        try {
-          const r = await api(`/api/admin/prepare?topic=${encodeURIComponent(topic)}&level=${level}`, { method: "POST", headers: adminHeaders() });
-          li.className = "ok";
-          li.textContent = `${r.topic}, ${LEVEL_NAME[level]}: ${r.after} questions ready` + (r.after > r.before ? ` (${r.after - r.before} new)` : "");
-        } catch (err) {
-          li.className = "bad"; li.textContent = `${topic}, ${LEVEL_NAME[level]}: ${err.message}`;
-          if (err.status === 503) break outer; // daily AI limit reached
+        for (const lang of langs) {
+          const names = { topic, level: lvl(level), lang: langName(lang) };
+          const li = el("li", {}, t("prepT.preparing", names)); log.append(li);
+          btn.textContent = t("prepT.busy", { topic });
+          try {
+            const r = await api(`/api/admin/prepare?topic=${encodeURIComponent(topic)}&level=${level}&lang=${lang}`, { method: "POST", headers: adminHeaders() });
+            li.className = "ok";
+            li.textContent = t("prepT.ready", { ...names, topic: r.topic, n: r.after }) + (r.after > r.before ? t("prepT.new", { n: r.after - r.before }) : "");
+          } catch (err) {
+            li.className = "bad"; li.textContent = `${topic}, ${names.level}, ${names.lang}: ${err.message}`;
+            if (err.status === 503 || err.code === "TOPIC_INVALID") { if (err.status === 503) break outer; break; }
+          }
+          loadAi();
         }
-        loadAi();
       }
     }
-    btn.disabled = false; btn.textContent = "Prepare topics";
+    btn.disabled = false; btn.textContent = t("prepT.go");
   });
   $("#qForm").addEventListener("submit", async e => {
     e.preventDefault();
     const p = new URLSearchParams({ topic: $("#qTopic").value.trim() });
     if ($("#qLevel").value) p.set("level", $("#qLevel").value);
+    if ($("#qLang").value) p.set("lang", $("#qLang").value);
     const box = $("#qList"); loading(box);
     try {
       const qs = await api("/api/admin/questions?" + p, { headers: adminHeaders() });
-      if (!qs.length) { box.replaceChildren(el("div", { class: "empty" }, "No questions for this topic yet. Prepare it first.")); return; }
-      box.replaceChildren(el("p", { class: "muted", style: "margin:0 0 4px;font-size:.9rem" }, `${qs.length} questions, ${qs.filter(q => q.active).length} switched on`),
+      if (!qs.length) { box.replaceChildren(el("div", { class: "empty" }, t("chk.none"))); return; }
+      box.replaceChildren(el("p", { class: "muted", style: "margin:0 0 4px;font-size:.9rem" }, t("chk.count", { n: qs.length, on: qs.filter(q => q.active).length })),
         ...qs.map(q => {
         const card = el("div", { class: "q-admin" + (q.active ? "" : " off") },
-          el("div", { class: "qnum" }, `#${q.id}, ${LEVEL_NAME[q.level]}`),
-          el("div", { style: "font-weight:600" }, rich(q.text)),
-          el("ol", { type: "A" }, q.options.map((o, j) => el("li", { class: j === q.correctIndex ? "c" : null }, rich(o)))),
-          q.explanation ? el("div", { class: "muted", style: "font-size:.88rem" }, rich(q.explanation)) : null);
-        const btn = el("button", { class: "btn small ghost", type: "button", style: "justify-self:start" }, q.active ? "Switch off" : "Switch on");
+          el("div", { class: "qnum" }, `#${q.id}, ${lvl(q.level)}, ${langName(q.lang)}`),
+          el("div", { style: "font-weight:600", lang: q.lang || "en" }, rich(q.text)),
+          el("ol", { type: "A", lang: q.lang || "en" }, q.options.map((o, j) => el("li", { class: j === q.correctIndex ? "c" : null }, rich(o)))),
+          q.explanation ? el("div", { class: "muted", style: "font-size:.88rem", lang: q.lang || "en" }, rich(q.explanation)) : null);
+        const btn = el("button", { class: "btn small ghost", type: "button", style: "justify-self:start" }, t(q.active ? "chk.off" : "chk.on"));
         btn.addEventListener("click", async () => {
           try {
             await api(`/api/admin/questions/${q.id}?active=${!q.active}`, { method: "PATCH", headers: adminHeaders() });
             q.active = !q.active; card.classList.toggle("off", !q.active);
-            btn.textContent = q.active ? "Switch off" : "Switch on";
-            toast(q.active ? "Question switched on" : "Question switched off");
+            btn.textContent = t(q.active ? "chk.off" : "chk.on");
+            toast(t(q.active ? "chk.toastOn" : "chk.toastOff"));
           } catch (err) { toast(err.message); }
         });
         card.append(btn); return card;
@@ -1692,7 +1844,7 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
   // delete results
   let delQuery = null;
   function delScope() { return document.querySelector("input[name=delScope]:checked").value; }
-  document.querySelectorAll("input[name=delScope]").forEach(r => r.addEventListener("change", () => {
+  $$("input[name=delScope]").forEach(r => r.addEventListener("change", () => {
     $("#delDateF").hidden = delScope() !== "before";
     $("#delEmpF").hidden = delScope() !== "employee";
     $("#delConfirm").hidden = true;
@@ -1700,15 +1852,15 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
   $("#delForm").addEventListener("submit", async e => {
     e.preventDefault();
     const scope = delScope(), p = new URLSearchParams({ scope });
-    if (scope === "before") { if (!$("#delDate").value) return toast("Pick a date."); p.set("before", $("#delDate").value); }
-    if (scope === "employee") { if (!$("#delEmp").value.trim()) return toast("Enter an employee ID."); p.set("empId", $("#delEmp").value.trim()); }
+    if (scope === "before") { if (!$("#delDate").value) return toast(t("del.pickDate")); p.set("before", $("#delDate").value); }
+    if (scope === "employee") { if (!$("#delEmp").value.trim()) return toast(t("del.needId")); p.set("empId", $("#delEmp").value.trim()); }
     try {
       const r = await api("/api/admin/attempts?" + p + "&dryRun=true", { method: "DELETE", headers: adminHeaders() });
       $("#delConfirm").hidden = false;
-      if (!r.count) { $("#delMsg").textContent = "Nothing to delete for this choice."; $("#delGo").hidden = true; delQuery = null; return; }
-      const what = scope === "all" ? "ALL results" : scope === "employee" ? `all results of ${p.get("empId")}` : `results from before ${p.get("before")}`;
-      $("#delMsg").textContent = `${r.count} result${r.count > 1 ? "s" : ""} will be deleted permanently (${what}). This cannot be undone.`;
-      $("#delGo").hidden = false; $("#delGo").textContent = `Delete ${r.count} result${r.count > 1 ? "s" : ""}`;
+      if (!r.count) { $("#delMsg").textContent = t("del.nothing"); $("#delGo").hidden = true; delQuery = null; return; }
+      const what = scope === "all" ? t("del.whatAll") : scope === "employee" ? t("del.whatEmp", { id: p.get("empId") }) : t("del.whatBefore", { d: p.get("before") });
+      $("#delMsg").textContent = t("del.confirm", { n: r.count, what });
+      $("#delGo").hidden = false; $("#delGo").textContent = t("del.goN", { n: r.count });
       delQuery = p;
     } catch (err) { toast(err.message); }
   });
@@ -1718,7 +1870,7 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
     const btn = $("#delGo"); btn.disabled = true;
     try {
       const r = await api("/api/admin/attempts?" + delQuery + "&dryRun=false", { method: "DELETE", headers: adminHeaders() });
-      toast(`Deleted ${r.count} result${r.count > 1 ? "s" : ""}`);
+      toast(t("del.done", { n: r.count }));
       $("#delConfirm").hidden = true; delQuery = null;
       loadAdmin();
     } catch (err) { toast(err.message); }
@@ -1740,33 +1892,17 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
   }
   if (!standalone) $("#installCard").hidden = false;   // always offer it; the steps depend on the browser
   window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); installPrompt = e; });
-  window.addEventListener("appinstalled", () => { $("#installCard").hidden = true; toast("SkillQuiz app installed. Find it on your home screen."); });
+  window.addEventListener("appinstalled", () => { $("#installCard").hidden = true; toast(t("inst.installed")); });
 
   function installSteps() {
-    const B = t => el("b", {}, t);
-    if (inApp && isIOS) return { copy: true, steps: [
-      el("li", {}, "This page is open inside another app (like WhatsApp). Tap ", B("Copy link"), " below."),
-      el("li", {}, "Open ", B("Safari"), ", paste the link in the address bar and open it."),
-      el("li", {}, "Tap ", B("Install app"), " again and follow the steps.")] };
-    if (inApp) return { copy: true, steps: [
-      el("li", {}, "This page is open inside another app (like WhatsApp), where apps can't be installed."),
-      el("li", {}, "Tap the ", B("⋮"), " menu at the top right and choose ", B("Open in Chrome"), " (or ", B("Open in browser"), "). If you don't see it, tap ", B("Copy link"), " below and paste it in Chrome."),
-      el("li", {}, "In Chrome, tap ", B("Install app"), " again.")] };
-    if (iosOtherBrowser) return { copy: true, steps: [
-      el("li", {}, "Tap the ", B("Share"), " button, then ", B("Add to Home Screen"), ". If you don't see it, copy the link and open it in ", B("Safari"), ".")] };
-    if (isIOS) return { steps: [
-      el("li", {}, "Tap the ", B("Share"), " button at the bottom of Safari (the square with an arrow)."),
-      el("li", {}, "Scroll down and tap ", B("Add to Home Screen"), "."),
-      el("li", {}, "Tap ", B("Add"), ". SkillQuiz appears on your home screen.")] };
-    if (isSamsung) return { steps: [
-      el("li", {}, "Tap the ", B("☰"), " menu at the bottom right."),
-      el("li", {}, "Tap ", B("Add page to"), ", then ", B("Home screen"), ".")] };
-    if (isAndroid) return { steps: [
-      el("li", {}, "Tap the ", B("⋮"), " menu at the top right of Chrome."),
-      el("li", {}, "Tap ", B("Install app"), " or ", B("Add to Home screen"), ", then ", B("Install"), ".")] };
-    return { steps: [
-      el("li", {}, "Click the ", B("install icon"), " at the right end of the address bar, or open the browser menu and choose ", B("Install SkillQuiz"), "."),
-      el("li", {}, "On a phone, open this same link in Chrome (Android) or Safari (iPhone).")] };
+    const li = k => el("li", {}, md(t(k)));
+    if (inApp && isIOS) return { copy: true, steps: ["inst.inAppIos1", "inst.inAppIos2", "inst.inAppIos3"].map(li) };
+    if (inApp) return { copy: true, steps: ["inst.inApp1", "inst.inApp2", "inst.inApp3"].map(li) };
+    if (iosOtherBrowser) return { copy: true, steps: ["inst.iosOther"].map(li) };
+    if (isIOS) return { steps: ["inst.ios1", "inst.ios2", "inst.ios3"].map(li) };
+    if (isSamsung) return { steps: ["inst.sam1", "inst.sam2"].map(li) };
+    if (isAndroid) return { steps: ["inst.and1", "inst.and2"].map(li) };
+    return { steps: ["inst.desk1", "inst.desk2"].map(li) };
   }
   $("#installBtn").addEventListener("click", async () => {
     if (installPrompt) {
@@ -1783,14 +1919,16 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
   });
   $("#instCopy").addEventListener("click", async () => {
     const link = location.origin + location.pathname;
-    try { await navigator.clipboard.writeText(link); toast("Link copied"); }
-    catch { prompt("Copy this link:", link); }
+    try { await navigator.clipboard.writeText(link); toast(t("inst.copied")); }
+    catch { prompt(t("inst.copyPrompt"), link); }
   });
   $("#instOk").addEventListener("click", () => $("#installDlg").close());
 
   // ---------- boot ----------
   $("#orgName").textContent = CFG.orgName || "";
-  renderChips([]);
+  $("#factL").textContent = I18N.QUESTION_LANGS.length;
+  applyStatic();
+  renderCats(); renderChips();
   ping().then(ok => { if (ok) { loadStats(); loadAi(); } });
   setInterval(() => { if (!state.inQuiz && !document.hidden) loadAi(); }, 60000);
 
@@ -1798,18 +1936,18 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
   if (active && active.paper) {
     Object.assign(state, { paper: active.paper, answers: active.answers || {}, warnings: active.warnings || 0, inQuiz: true,
       times: active.times || {}, changes: active.changes || {}, qStart: 0, idx: 0 });
-    if (active.ended) {
+    const ended = active.ended || (active.paper.deadline <= Date.now() ? "TIMEOUT" : null);
+    if (ended) {
       // the exam ended while this page was closed/hidden: finish it and show the result
       document.body.classList.add("testing"); show("prep");
-      $("#prepTitle").textContent = "Submitting your test"; $("#prepMsg").textContent = END_TEXT[active.ended] || "";
-      finish(active.ended);
-    } else if (active.paper.deadline <= Date.now()) {
-      document.body.classList.add("testing"); show("prep");
-      $("#prepTitle").textContent = "Submitting your test"; $("#prepMsg").textContent = END_TEXT.TIMEOUT;
-      finish("TIMEOUT");
+      $("#prepTitle").textContent = t("prep.submitting");
+      $("#prepMsg").textContent = I18N.has("end." + ended) ? t("end." + ended) : "";
+      finish(ended);
     } else {
       beginQuiz(active.paper, active.answers || {}, active.warnings || 0, active);
     }
+  } else if (!I18N.chosen) {
+    openLang();   // first visit: ask which language to use
   }
 })();
 </script>

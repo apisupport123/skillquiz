@@ -1,8 +1,18 @@
-# SkillQuiz — AI-powered employee skill test
+# SkillQuiz — AI-powered practice tests for any exam
 
-Koi bhi technology type karo (Java, PHP, Python, GenAI, Spring Boot, SQL, AWS…) → AI us topic ke
-MCQ questions banata hai → har employee ko **alag paper** milta hai (alag questions + options shuffle)
-→ submit karte hi score, rank aur har answer ka explanation → sab result database mein save.
+Koi bhi exam ya subject type karo — UPSC, MPSC, SSC, banking, TGT/CTET, NEET/JEE, school subjects,
+GK/reasoning ya technology (Java, Python, GenAI…) → AI us topic ke MCQ questions banata hai → har
+person ko **alag paper** milta hai (alag questions + options shuffle) → submit karte hi score, rank aur
+har answer ka explanation → sab result database mein save.
+
+## Languages
+
+- **App ki bhasha** (buttons, messages, errors): English, हिन्दी, मराठी. Pehli baar khulne par poochta hai,
+  baad mein upar 🌐 button se badal sakte ho. Saare texts `docs/i18n.js` mein hain.
+- **Questions ki bhasha** (test shuru karte waqt choose hoti hai): English, हिन्दी, मराठी, ગુજરાતી, বাংলা,
+  தமிழ், తెలుగు, ಕನ್ನಡ, മലയാളം, ਪੰਜਾਬੀ, ଓଡ଼ିଆ. Har topic + level + bhasha ka question pool alag hai.
+- Govt exams ke liye AI current affairs avoid karta hai, phir bhi admin **Check AI questions** se
+  galat question band kar sakta hai. Test wale din se pehle **Prepare topics** mein bhasha bhi chuno.
 
 ```
  Employees ──► GitHub Pages (docs/)  ──►  Render (Spring Boot, backend/)  ──►  Supabase Postgres
