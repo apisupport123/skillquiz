@@ -404,6 +404,11 @@ button.li:hover { background: var(--surface-2); }
 }
 body.testing .toast { bottom: calc(96px + var(--safe-b)); }
 
+.btn.danger { background: #C62828; color: #fff; }
+.danger-card { border-color: color-mix(in srgb, #C62828 35%, var(--line)); }
+.del-confirm { margin-top: 12px; padding: 12px 14px; border-radius: 12px; background: var(--accent-soft); }
+.del-confirm p { margin: 0 0 10px; font-weight: 600; }
+
 /* phones: dialogs become bottom sheets */
 @media (max-width: 640px) {
   dialog { margin: auto 0 0; width: 100%; border-radius: var(--r-lg) var(--r-lg) 0 0; max-height: 94vh; }
@@ -657,6 +662,27 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
             <button class="btn small" type="submit">Show questions</button>
           </form>
           <div id="qList"></div>
+        </div>
+        <div class="card admin-card wide danger-card">
+          <h2>Delete results</h2>
+          <p class="muted">Removes test results permanently. AI questions stay. Download the CSV first if you need a copy.</p>
+          <form id="delForm" class="prep-form">
+            <div class="seg" role="radiogroup" aria-label="What to delete">
+              <input type="radio" name="delScope" id="d1" value="before" checked><label for="d1">Older than<small>a date</small></label>
+              <input type="radio" name="delScope" id="d2" value="employee"><label for="d2">One person<small>by ID</small></label>
+              <input type="radio" name="delScope" id="d3" value="all"><label for="d3">Everything<small>all results</small></label>
+            </div>
+            <div class="field" id="delDateF"><label for="delDate">Delete results from before</label><input id="delDate" type="date"></div>
+            <div class="field" id="delEmpF" hidden><label for="delEmp">Employee ID</label><input id="delEmp" maxlength="30" autocapitalize="characters"></div>
+            <button class="btn small ghost" type="submit">Check how many</button>
+          </form>
+          <div id="delConfirm" class="del-confirm" hidden>
+            <p id="delMsg"></p>
+            <div class="row-btns">
+              <button class="btn small danger" type="button" id="delGo">Delete</button>
+              <button class="btn small ghost" type="button" id="delCancel">Cancel</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1374,6 +1400,42 @@ body.testing .toast { bottom: calc(96px + var(--safe-b)); }
         card.append(btn); return card;
       }));
     } catch (err) { box.replaceChildren(el("div", { class: "empty" }, err.message)); }
+  });
+
+  // delete results
+  let delQuery = null;
+  function delScope() { return document.querySelector("input[name=delScope]:checked").value; }
+  document.querySelectorAll("input[name=delScope]").forEach(r => r.addEventListener("change", () => {
+    $("#delDateF").hidden = delScope() !== "before";
+    $("#delEmpF").hidden = delScope() !== "employee";
+    $("#delConfirm").hidden = true;
+  }));
+  $("#delForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    const scope = delScope(), p = new URLSearchParams({ scope });
+    if (scope === "before") { if (!$("#delDate").value) return toast("Pick a date."); p.set("before", $("#delDate").value); }
+    if (scope === "employee") { if (!$("#delEmp").value.trim()) return toast("Enter an employee ID."); p.set("empId", $("#delEmp").value.trim()); }
+    try {
+      const r = await api("/api/admin/attempts?" + p + "&dryRun=true", { method: "DELETE", headers: adminHeaders() });
+      $("#delConfirm").hidden = false;
+      if (!r.count) { $("#delMsg").textContent = "Nothing to delete for this choice."; $("#delGo").hidden = true; delQuery = null; return; }
+      const what = scope === "all" ? "ALL results" : scope === "employee" ? `all results of ${p.get("empId")}` : `results from before ${p.get("before")}`;
+      $("#delMsg").textContent = `${r.count} result${r.count > 1 ? "s" : ""} will be deleted permanently (${what}). This cannot be undone.`;
+      $("#delGo").hidden = false; $("#delGo").textContent = `Delete ${r.count} result${r.count > 1 ? "s" : ""}`;
+      delQuery = p;
+    } catch (err) { toast(err.message); }
+  });
+  $("#delCancel").addEventListener("click", () => { $("#delConfirm").hidden = true; delQuery = null; });
+  $("#delGo").addEventListener("click", async () => {
+    if (!delQuery) return;
+    const btn = $("#delGo"); btn.disabled = true;
+    try {
+      const r = await api("/api/admin/attempts?" + delQuery + "&dryRun=false", { method: "DELETE", headers: adminHeaders() });
+      toast(`Deleted ${r.count} result${r.count > 1 ? "s" : ""}`);
+      $("#delConfirm").hidden = true; delQuery = null;
+      loadAdmin();
+    } catch (err) { toast(err.message); }
+    btn.disabled = false;
   });
 
   // ---------- boot ----------

@@ -22,7 +22,7 @@ public class WebConfig implements WebMvcConfigurer {
                 .map(String::trim).filter(s -> !s.isEmpty()).toArray(String[]::new);
         registry.addMapping("/api/**")
                 .allowedOriginPatterns(origins.length == 0 ? new String[]{"*"} : origins)
-                .allowedMethods("GET", "POST", "PATCH", "OPTIONS")
+                .allowedMethods("GET", "POST", "PATCH", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .exposedHeaders("Content-Disposition")
                 .maxAge(3600);

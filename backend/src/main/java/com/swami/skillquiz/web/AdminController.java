@@ -47,6 +47,56 @@ public class AdminController {
     }
 
     /**
+     * Delete test results. scope = before (date, IST) | employee (empId) | all.
+     * dryRun=true only counts, so the UI can show "N results will be deleted" before confirming.
+     * AI questions are never deleted here.
+     */
+    @DeleteMapping("/attempts")
+    @Transactional
+    public Map<String, Object> deleteAttempts(@RequestHeader(value = "X-Admin-Key", required = false) String key,
+                                              @RequestParam String scope,
+                                              @RequestParam(required = false) String before,
+                                              @RequestParam(required = false) String empId,
+                                              @RequestParam(defaultValue = "true") boolean dryRun) {
+        auth(key);
+        long count;
+        switch (scope) {
+            case "before" -> {
+                java.time.Instant cutoff;
+                try {
+                    cutoff = java.time.LocalDate.parse(before == null ? "" : before)
+                            .atStartOfDay(ZoneId.of("Asia/Kolkata")).toInstant();
+                } catch (java.time.format.DateTimeParseException e) {
+                    throw new ApiException(400, "Date sahi format mein do (YYYY-MM-DD).");
+                }
+                count = attempts.countByStartedAtBefore(cutoff);
+                if (!dryRun && count > 0) {
+                    attempts.deleteItemsBefore(cutoff);
+                    attempts.deleteAttemptsBefore(cutoff);
+                }
+            }
+            case "employee" -> {
+                String id = empId == null ? "" : empId.trim();
+                if (id.isEmpty()) throw new ApiException(400, "Employee ID daalo.");
+                count = attempts.countByEmpIdIgnoreCase(id);
+                if (!dryRun && count > 0) {
+                    attempts.deleteItemsOfEmployee(id);
+                    attempts.deleteAttemptsOfEmployee(id);
+                }
+            }
+            case "all" -> {
+                count = attempts.count();
+                if (!dryRun && count > 0) {
+                    attempts.deleteAllItems();
+                    attempts.deleteAllAttempts();
+                }
+            }
+            default -> throw new ApiException(400, "scope must be before, employee or all");
+        }
+        return Map.of("count", count, "deleted", !dryRun);
+    }
+
+    /**
      * Build a topic's question pool BEFORE test day, so employees use zero AI calls.
      * One call per level; run it the day before for each planned topic.
      */

@@ -4,9 +4,11 @@ import com.swami.skillquiz.model.Attempt;
 import com.swami.skillquiz.model.Level;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.Instant;
 import java.util.List;
 
 public interface AttemptRepository extends JpaRepository<Attempt, String> {
@@ -45,4 +47,34 @@ public interface AttemptRepository extends JpaRepository<Attempt, String> {
     List<Object[]> popularTopics(Pageable page);
 
     long countBySubmittedTrue();
+
+    // ---------- admin delete (answers first, then the attempts) ----------
+
+    long countByStartedAtBefore(Instant before);
+
+    long countByEmpIdIgnoreCase(String empId);
+
+    @Modifying
+    @Query("delete from AttemptItem i where i.attempt.id in (select a.id from Attempt a where a.startedAt < :before)")
+    int deleteItemsBefore(@Param("before") Instant before);
+
+    @Modifying
+    @Query("delete from Attempt a where a.startedAt < :before")
+    int deleteAttemptsBefore(@Param("before") Instant before);
+
+    @Modifying
+    @Query("delete from AttemptItem i where i.attempt.id in (select a.id from Attempt a where lower(a.empId) = lower(:empId))")
+    int deleteItemsOfEmployee(@Param("empId") String empId);
+
+    @Modifying
+    @Query("delete from Attempt a where lower(a.empId) = lower(:empId)")
+    int deleteAttemptsOfEmployee(@Param("empId") String empId);
+
+    @Modifying
+    @Query("delete from AttemptItem i")
+    int deleteAllItems();
+
+    @Modifying
+    @Query("delete from Attempt a")
+    int deleteAllAttempts();
 }
