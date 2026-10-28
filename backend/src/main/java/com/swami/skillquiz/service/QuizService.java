@@ -90,10 +90,10 @@ public class QuizService {
         }
         attempts.save(a);
 
-        // Grow the pool in the background so the next people get even more variety.
-        // Grow faster if this employee has already seen most of the pool (retakes).
+        // Grow the pool in the background (one AI call) so later people get more variety.
+        // Retakes only grow it when this employee has nothing fresh left for a second paper.
         int target = props.targetPoolSize();
-        if (fresh.size() < perTest * 2) target = Math.max(target, all.size() + props.batchSize());
+        if (fresh.size() < perTest) target = Math.max(target, all.size() + props.batchSize());
         if (all.size() < Math.min(target, props.maxPoolSize())) {
             refiller.refill(key, label, level, target);
         }

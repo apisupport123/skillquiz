@@ -7,6 +7,7 @@ import com.swami.skillquiz.model.Question;
 import com.swami.skillquiz.repo.AttemptRepository;
 import com.swami.skillquiz.repo.QuestionRepository;
 import com.swami.skillquiz.service.ApiException;
+import com.swami.skillquiz.service.QuestionPoolService;
 import com.swami.skillquiz.service.Topics;
 import com.swami.skillquiz.web.Dtos.AdminAttemptRow;
 import com.swami.skillquiz.web.Dtos.AdminQuestionRow;
@@ -22,6 +23,7 @@ import java.security.MessageDigest;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 
 /** Everything here needs header X-Admin-Key = ADMIN_KEY env var. */
 @RestController
@@ -34,11 +36,33 @@ public class AdminController {
     private final AttemptRepository attempts;
     private final QuestionRepository questions;
     private final QuizProperties props;
+    private final QuestionPoolService pool;
 
-    public AdminController(AttemptRepository attempts, QuestionRepository questions, QuizProperties props) {
+    public AdminController(AttemptRepository attempts, QuestionRepository questions, QuizProperties props,
+                           QuestionPoolService pool) {
         this.attempts = attempts;
         this.questions = questions;
         this.props = props;
+        this.pool = pool;
+    }
+
+    /**
+     * Build a topic's question pool BEFORE test day, so employees use zero AI calls.
+     * One call per level; run it the day before for each planned topic.
+     */
+    @PostMapping("/prepare")
+    public Map<String, Object> prepare(@RequestHeader(value = "X-Admin-Key", required = false) String key,
+                                       @RequestParam String topic, @RequestParam Level level) {
+        auth(key);
+        String cleaned = Topics.clean(topic);
+        String k = Topics.key(cleaned);
+        String label = Topics.label(cleaned);
+        long before = pool.size(k, level);
+        pool.ensureAtLeast(k, label, level, Math.max(props.minPoolSize(), props.questionsPerTest()));
+        // one extra round toward the target size for more variety
+        pool.topUp(k, label, level, props.targetPoolSize());
+        long after = pool.size(k, level);
+        return Map.of("topic", label, "level", level, "before", before, "after", after);
     }
 
     @GetMapping("/check")

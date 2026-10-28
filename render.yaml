@@ -23,8 +23,8 @@ services:
         sync: false
       - key: ALLOWED_ORIGINS
         sync: false
-      - key: GEMINI_MODEL
-        value: gemini-3.6-flash
+      - key: GEMINI_MODELS
+        value: gemini-3.1-flash-lite,gemini-3.6-flash
       - key: QUIZ_QUESTIONS_PER_TEST
         value: "10"
       - key: QUIZ_TIME_LIMIT_MINUTES

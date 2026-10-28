@@ -60,13 +60,22 @@ public class QuestionPoolService {
         if (!got) throw new ApiException(503, "Paper abhi ban raha hai, 1 minute baad try karo.");
         try {
             int rounds = 0;
-            while (size(topicKey, level) < needed && rounds++ < 3) {
+            while (size(topicKey, level) < needed && rounds++ < 2) {
                 if (!limiter.tryAcquire()) {
                     if (size(topicKey, level) >= props.questionsPerTest()) return; // good enough for now
-                    throw new ApiException(429, "Bahut log ek saath naya topic shuru kar rahe hain. 1 minute baad try karo.");
+                    throw new ApiException(429, "Bahut log ek saath naya topic shuru kar rahe hain. Thodi der mein apne aap dobara try hoga.");
                 }
-                int added = generateBatch(topicKey, topicLabel, level);
-                if (added == 0 && size(topicKey, level) >= props.questionsPerTest()) return;
+                try {
+                    int added = generateBatch(topicKey, topicLabel, level);
+                    if (added == 0 && size(topicKey, level) >= props.questionsPerTest()) return;
+                } catch (ApiException e) {
+                    // AI failed (limit / outage). If we already have one full paper, still let the employee start.
+                    if (e.status() != 422 && size(topicKey, level) >= props.questionsPerTest()) {
+                        log.info("AI unavailable for {}/{} ({}), serving existing pool", topicKey, level, e.getMessage());
+                        return;
+                    }
+                    throw e;
+                }
             }
         } finally {
             lock.unlock();
@@ -79,10 +88,9 @@ public class QuestionPoolService {
         if (!lock.tryLock()) return;
         try {
             int cap = Math.min(target, props.maxPoolSize());
-            int rounds = 0;
-            while (size(topicKey, level) < cap && rounds++ < 3) {
-                if (!limiter.tryAcquire()) return; // leave the quota for new topics
-                if (generateBatch(topicKey, topicLabel, level) == 0) return;
+            // one AI call per trigger: the free daily quota is better spent on NEW topics
+            if (size(topicKey, level) < cap && limiter.tryAcquire()) {
+                generateBatch(topicKey, topicLabel, level);
             }
         } catch (ApiException e) {
             log.info("Background top-up for {}/{} stopped: {}", topicKey, level, e.getMessage());

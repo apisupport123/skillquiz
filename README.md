@@ -92,6 +92,14 @@ Repo → **Settings → Secrets and variables → Actions → Variables** → Ne
 
 ---
 
+## Free AI limit (important)
+Google free tier mein limit **har model ki alag, per day** hoti hai (midnight Pacific = subah ~12:30 IST pe reset):
+- `gemini-3.1-flash-lite`: ~500 requests/day (primary)
+- `gemini-3.6-flash`: ~20 requests/day (backup)
+
+Ek naya topic+level = lagbhag 1–2 AI calls. Jo topic pehle se bana hai, uspe **0 calls** — chahe 100 log dein.
+Isliye: **test se ek din pehle Admin → "Prepare topics for test day"** mein topics daal ke prepare kar lo.
+
 ## Test wale din ki checklist
 - Test se **5 minute pehle** site khud kholo. Header mein "Online" green aana chahiye
   (Render free 15 min idle pe so jaata hai, jaagne mein ~1 minute).
@@ -104,9 +112,9 @@ Repo → **Settings → Secrets and variables → Actions → Variables** → Ne
 |---|---|---|
 | `QUIZ_QUESTIONS_PER_TEST` | 10 | ek paper mein kitne questions |
 | `QUIZ_TIME_LIMIT_MINUTES` | 15 | timer |
-| `QUIZ_TARGET_POOL_SIZE` | 45 | background mein pool kitna bade |
-| `QUIZ_MAX_AI_CALLS_PER_MINUTE` | 4 | free AI limit ke andar rehne ke liye |
-| `GEMINI_MODEL` | gemini-3.6-flash | AI model |
+| `QUIZ_TARGET_POOL_SIZE` | 40 | background mein pool kitna bade |
+| `QUIZ_MAX_AI_CALLS_PER_MINUTE` | 6 | free AI limit ke andar rehne ke liye |
+| `GEMINI_MODELS` | gemini-3.1-flash-lite,gemini-3.6-flash | AI models, order mein try hote hain |
 
 ## Laptop pe chalana (bina Supabase / AI ke)
 ```bash

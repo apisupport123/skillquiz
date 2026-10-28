@@ -15,9 +15,14 @@ import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Calls Google Gemini (free tier key from aistudio.google.com) and asks for strict JSON.
@@ -30,17 +35,23 @@ public class GeminiQuestionGenerator implements QuestionGenerator {
     private static final Logger log = LoggerFactory.getLogger(GeminiQuestionGenerator.class);
     private static final String BASE = "https://generativelanguage.googleapis.com/v1beta/models/";
 
+    private static final ZoneId PACIFIC = ZoneId.of("America/Los_Angeles"); // Google resets daily quota at midnight PT
+
     private final RestClient http;
     private final ObjectMapper mapper;
     private final String apiKey;
-    private final String model;
+    /** tried in order; free daily quota is PER MODEL, so a chain multiplies capacity */
+    private final List<String> models;
+    /** model -> moment its daily quota resets (set when Google says "per day" quota is used up) */
+    private final Map<String, Instant> exhaustedUntil = new ConcurrentHashMap<>();
 
     public GeminiQuestionGenerator(ObjectMapper mapper,
                                    @Value("${gemini.api-key:}") String apiKey,
-                                   @Value("${gemini.model:gemini-3.6-flash}") String model) {
+                                   @Value("${gemini.models:gemini-3.1-flash-lite,gemini-3.6-flash}") String models) {
         this.mapper = mapper;
         this.apiKey = apiKey;
-        this.model = model;
+        this.models = Arrays.stream(models.split(",")).map(String::trim).filter(m -> !m.isEmpty()).toList();
+        log.info("AI models (in order): {}", this.models);
         SimpleClientHttpRequestFactory rf = new SimpleClientHttpRequestFactory();
         rf.setConnectTimeout(10_000);
         rf.setReadTimeout(150_000); // AI can take a while for 15-20 questions
@@ -64,12 +75,43 @@ public class GeminiQuestionGenerator implements QuestionGenerator {
                         "responseMimeType", "application/json",
                         "responseSchema", schema()));
 
-        String raw = callWithRetry(body);
-        return parse(raw);
+        ApiException lastError = null;
+        for (String model : models) {
+            Instant until = exhaustedUntil.get(model);
+            if (until != null && Instant.now().isBefore(until)) continue; // today's quota already used
+            try {
+                return parse(callWithRetry(model, body));
+            } catch (DailyQuotaExceeded e) {
+                Instant reset = nextPacificMidnight();
+                exhaustedUntil.put(model, reset);
+                log.warn("Daily free quota used up for {} - skipping it until {}", model, reset);
+                lastError = new ApiException(503, "Aaj ki free AI limit khatam ho gayi. Jo topics pehle se bane hain wo chalenge; naya topic kal subah try karo.");
+            } catch (ModelUnavailable e) {
+                log.warn("Model {} not available ({}), trying next", model, e.getMessage());
+                lastError = new ApiException(502, "AI model available nahi hai. Admin: GEMINI_MODELS check karo.");
+            }
+        }
+        if (lastError == null) {
+            lastError = new ApiException(503, "Aaj ki free AI limit khatam ho gayi. Jo topics pehle se bane hain wo chalenge; naya topic kal subah try karo.");
+        }
+        throw lastError;
     }
 
-    private String callWithRetry(Map<String, Object> body) {
-        long[] backoffMs = {0, 3_000, 8_000};
+    /** thrown when Google says the per-DAY quota is used up: retrying today is pointless */
+    private static class DailyQuotaExceeded extends RuntimeException {}
+
+    /** model id not found / not allowed for this key: try the next model */
+    private static class ModelUnavailable extends RuntimeException {
+        ModelUnavailable(String msg) { super(msg); }
+    }
+
+    private static Instant nextPacificMidnight() {
+        return ZonedDateTime.now(PACIFIC).toLocalDate().plusDays(1).atStartOfDay(PACIFIC).plusMinutes(5).toInstant();
+    }
+
+    private String callWithRetry(String model, Map<String, Object> body) {
+        // every attempt counts against the daily quota, so retry only once and only for per-minute/5xx errors
+        long[] backoffMs = {0, 12_000};
         RuntimeException last = null;
         for (long wait : backoffMs) {
             sleep(wait);
@@ -83,12 +125,19 @@ public class GeminiQuestionGenerator implements QuestionGenerator {
                         .body(String.class);
             } catch (HttpStatusCodeException e) {
                 HttpStatusCode sc = e.getStatusCode();
-                log.warn("Gemini HTTP {}: {}", sc.value(), truncate(e.getResponseBodyAsString(), 300));
+                String errBody = e.getResponseBodyAsString();
+                log.warn("Gemini HTTP {} [{}]: {}", sc.value(), model, truncate(errBody, 400));
+                if (sc.value() == 429 && errBody != null && errBody.contains("PerDay")) {
+                    throw new DailyQuotaExceeded();
+                }
                 if (sc.value() == 429 || sc.is5xxServerError()) {
                     last = e;
-                    continue; // retry
+                    continue; // per-minute limit or Google hiccup: one retry
                 }
-                throw new ApiException(502, "AI service ne request reject ki (" + sc.value() + "). API key / model check karo.");
+                if (sc.value() == 404) {
+                    throw new ModelUnavailable("HTTP 404");
+                }
+                throw new ApiException(502, "AI service ne request reject ki (" + sc.value() + "). API key check karo.");
             } catch (ResourceAccessException e) {
                 log.warn("Gemini network error: {}", e.getMessage());
                 last = e;
