@@ -92,6 +92,15 @@ Repo → **Settings → Secrets and variables → Actions → Variables** → Ne
 
 ---
 
+## Exam lock (anti-cheat)
+Test ke dauraan ye hone pe test turant submit ho jaata hai, aur Admin/CSV mein wajah dikhti hai:
+- dusre app/tab pe jaana, call/notification kholna, screen lock (`Left screen`)
+- page/tab band karna (`Closed tab`)
+- question copy karna (`Copy attempt`)
+
+Phone call pe bhi submit ho jaata hai. 1–2 warning dena ho toh `docs/config.js` mein `leaveWarnings: 1` karo.
+Screenshot website se pakda nahi ja sakta.
+
 ## Free AI limit (important)
 Google free tier mein limit **har model ki alag, per day** hoti hai (midnight Pacific = subah ~12:30 IST pe reset):
 - `gemini-3.1-flash-lite`: ~500 requests/day (primary)
@@ -110,9 +119,9 @@ Isliye: **test se ek din pehle Admin → "Prepare topics for test day"** mein to
 ## Settings badalni ho (Render → Environment)
 | Variable | Default | Matlab |
 |---|---|---|
-| `QUIZ_QUESTIONS_PER_TEST` | 10 | ek paper mein kitne questions |
-| `QUIZ_TIME_LIMIT_MINUTES` | 15 | timer |
-| `QUIZ_TARGET_POOL_SIZE` | 40 | background mein pool kitna bade |
+| `QUIZ_QUESTIONS_PER_TEST` | 20 | ek paper mein kitne questions |
+| `QUIZ_TIME_LIMIT_MINUTES` | 30 | timer |
+| `QUIZ_TARGET_POOL_SIZE` | 90 | background mein pool kitna bade |
 | `QUIZ_MAX_AI_CALLS_PER_MINUTE` | 6 | free AI limit ke andar rehne ke liye |
 | `GEMINI_MODELS` | gemini-3.1-flash-lite,gemini-3.6-flash | AI models, order mein try hote hain |
 
