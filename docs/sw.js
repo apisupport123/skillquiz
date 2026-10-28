@@ -1,7 +1,7 @@
 // SkillQuiz service worker: makes the site installable and opens fast.
 // Network first, so employees always get the latest version you push to GitHub.
 // The cached copy is only used when the phone is offline. API calls are never cached.
-const CACHE = "skillquiz-v1";
+const CACHE = "skillquiz-v2";
 const SHELL = ["./", "./index.html", "./config.js", "./manifest.webmanifest",
   "./icons/icon-192.png", "./icons/icon-512.png", "./icons/apple-touch-icon.png"];
 
